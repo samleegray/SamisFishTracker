@@ -2,9 +2,11 @@
 ## Version: 1.0.0
 ## APIVersion: 101048
 ## Author: samihaize
-## Description: SamisFishTracker counts how many fish you have looted.
+## Description: Keeps track of your fishies.
 ## IsLibrary: false
 ## SavedVariables: SFTSavedVariables
+## DependsOn: LibAddonMenu-2.0
+## OptionalDependsOn: LibSlashCommander
 
 SFT_Core.lua
 SFT_Inventory.lua
