@@ -1,0 +1,65 @@
+name: Create Addon Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract tag version
+        id: tag_version
+        run: |
+          TAG_VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$TAG_VERSION" >> $GITHUB_OUTPUT
+          echo "Tag version: $TAG_VERSION"
+
+      - name: Extract addon version from SFT_Core.lua
+        id: addon_version
+        run: |
+          ADDON_VERSION=$(grep -oP 'version = "\K[^"]+' SFT_Core.lua)
+          echo "version=$ADDON_VERSION" >> $GITHUB_OUTPUT
+          echo "Addon version: $ADDON_VERSION"
+
+      - name: Compare versions
+        run: |
+          TAG_VERSION=${{ steps.tag_version.outputs.version }}
+          ADDON_VERSION=${{ steps.addon_version.outputs.version }}
+          echo "Tag version: $TAG_VERSION"
+          echo "Addon version: $ADDON_VERSION"
+          if [ "$TAG_VERSION" != "$ADDON_VERSION" ]; then
+            echo "Version mismatch! Tag: $TAG_VERSION, Addon: $ADDON_VERSION"
+            exit 1
+          fi
+          echo "Versions match!"
+
+      - name: Create zip file
+        run: |
+          zip -r SamisFishTracker.zip \
+            bindings.xml \
+            LICENSE.md \
+            README.md \
+            SamisFishTracker.lua \
+            SamisFishTracker.txt \
+            SamisFishTracker.xml \
+            SFT_Commands.lua \
+            SFT_Core.lua \
+            SFT_Inventory.lua \
+            SFT_UI.lua
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: SamisFishTracker.zip
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
