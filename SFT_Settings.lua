@@ -71,6 +71,38 @@ function SFT.settingsInit()
     end,
     default = true,
   }
+  optionsData[#optionsData + 1] = {
+    type = "checkbox",
+    name = "Auto Update Avg/hr",
+    tooltip = "Automatically refresh the Avg/hr value over time",
+    getFunc = function()
+      return SFT.savedVariables.averageRateAutoUpdateEnabled ~= false
+    end,
+    setFunc = function(value)
+      SFT.savedVariables.averageRateAutoUpdateEnabled = value
+      SFT.ConfigureAverageRateAutoUpdate()
+    end,
+    default = true,
+  }
+  optionsData[#optionsData + 1] = {
+    type = "slider",
+    name = "Avg/hr Update Frequency (seconds)",
+    tooltip = "How often Avg/hr updates automatically",
+    min = 1,
+    max = 60,
+    step = 1,
+    getFunc = function()
+      return SFT.savedVariables.averageRateUpdateIntervalSeconds or 1
+    end,
+    setFunc = function(value)
+      SFT.savedVariables.averageRateUpdateIntervalSeconds = value
+      SFT.ConfigureAverageRateAutoUpdate()
+    end,
+    default = 1,
+    disabled = function()
+      return SFT.savedVariables.averageRateAutoUpdateEnabled == false
+    end,
+  }
 
   optionsData[#optionsData + 1] = {
     type = "header",

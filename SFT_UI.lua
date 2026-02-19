@@ -32,11 +32,16 @@ function SFT.InitializeBackground()
   end
 end
 
-function SFT.UpdateAverageRateLabel()
+function SFT.UpdateAverageRateLabel(forceUpdate)
   local isEnabled = isAverageRateEnabled()
   SamisFishTrackerControlLabelAverage:SetHidden(not isEnabled)
 
   if not isEnabled then
+    return
+  end
+
+  local autoUpdateEnabled = not SFT.savedVariables or SFT.savedVariables.averageRateAutoUpdateEnabled ~= false
+  if not autoUpdateEnabled and not forceUpdate then
     return
   end
 

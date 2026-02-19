@@ -1,5 +1,22 @@
 local SFT = _G.SFT
 local visibility = SFT.constants.visibility
+local averageRateUpdateName = SFT.name .. "AverageRate"
+
+function SFT.ConfigureAverageRateAutoUpdate()
+  local intervalSeconds = tonumber(SFT.savedVariables.averageRateUpdateIntervalSeconds) or 1
+  intervalSeconds = math.max(1, math.min(60, intervalSeconds))
+  SFT.savedVariables.averageRateUpdateIntervalSeconds = intervalSeconds
+
+  EVENT_MANAGER:UnregisterForUpdate(averageRateUpdateName)
+
+  if SFT.savedVariables.averageRateAutoUpdateEnabled == false then
+    return
+  end
+
+  EVENT_MANAGER:RegisterForUpdate(averageRateUpdateName, intervalSeconds * 1000, function()
+    SFT.UpdateAverageRateLabel()
+  end)
+end
 
 function SFT.RestorePosition()
   local left = SFT.savedVariables.left
@@ -50,6 +67,8 @@ function SFT.Initialize()
     visibility = visibility.HIDE,
     roeRate = SFT.constants.roeRate,
     showAverageRate = true,
+    averageRateAutoUpdateEnabled = true,
+    averageRateUpdateIntervalSeconds = 1,
   })
 
   SamisFishTrackerControl:SetHandler("OnMoveStop", function()
@@ -65,10 +84,7 @@ function SFT.Initialize()
   SFT.ApplyVisibilitySetting()
   SFT.RestorePosition()
   SFT.RegisterSlashCommands()
-
-  EVENT_MANAGER:RegisterForUpdate(SFT.name .. "AverageRate", 1000, function()
-    SFT.UpdateAverageRateLabel()
-  end)
+  SFT.ConfigureAverageRateAutoUpdate()
 end
 
 function SFT.LootReceivedEvent(_, _, itemLink, quantity, _, _, self)
@@ -83,6 +99,7 @@ function SFT.LootReceivedEvent(_, _, itemLink, quantity, _, _, self)
   local amount = quantity or 1
   SFT.UpdateFishAmount(amount)
   SFT.savedVariables.amount = SFT.fishamount
+  SFT.UpdateAverageRateLabel(true)
 end
 
 function SFT.OnAddOnLoaded(_, addonName)
