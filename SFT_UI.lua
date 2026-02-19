@@ -6,23 +6,107 @@ local function formatIconLabel(iconPath, amount)
 end
 
 local function formatRoeLabel(amount)
-  return string.format("Est. |t16:16:%s|t : %d", constants.icons.roe, amount * constants.roeRate)
+  local roeRate = SFT.savedVariables and SFT.savedVariables.roeRate or constants.roeRate
+  return string.format("Est. |t16:16:%s|t : %d", constants.icons.roe, amount * roeRate)
+end
+
+local function getCatchHistory()
+  if not SFT.averageRateCatchHistory then
+    SFT.averageRateCatchHistory = {}
+  end
+
+  return SFT.averageRateCatchHistory
+end
+
+local function pruneCatchHistory(now, windowSeconds)
+  local catchHistory = getCatchHistory()
+  local cutoff = now - windowSeconds
+
+  while #catchHistory > 0 and catchHistory[1].timestamp <= cutoff do
+    table.remove(catchHistory, 1)
+  end
+
+  return catchHistory
+end
+
+function SFT.RecordFishCatch(amount)
+  local catchHistory = getCatchHistory()
+  catchHistory[#catchHistory + 1] = {
+    timestamp = os.time(),
+    amount = amount or 0,
+  }
+end
+
+local function formatAverageLabel()
+  local useRollingWindow = not SFT.savedVariables or SFT.savedVariables.averageRateUseRollingWindow ~= false
+  
+  if useRollingWindow then
+    local windowSeconds = (SFT.savedVariables and SFT.savedVariables.averageRateRollingWindowSeconds) or 300
+    windowSeconds = math.max(1, math.min(3600, windowSeconds))
+    local now = os.time()
+    local catchHistory = pruneCatchHistory(now, windowSeconds)
+    local fishInWindow = 0
+
+    for i = 1, #catchHistory do
+      fishInWindow = fishInWindow + catchHistory[i].amount
+    end
+
+    local fishPerHour = (fishInWindow / windowSeconds) * 3600
+    return string.format("Avg/hr: %.1f", fishPerHour)
+  else
+    local sessionStartTime = SFT.sessionStartTime or os.time()
+    local elapsedSeconds = math.max(os.time() - sessionStartTime, 1)
+    local fishPerHour = (SFT.fishamount / elapsedSeconds) * 3600
+    return string.format("Avg/hr: %.1f", fishPerHour)
+  end
+end
+
+local function isAverageRateEnabled()
+  return not SFT.savedVariables or SFT.savedVariables.showAverageRate ~= false
 end
 
 function SFT.InitializeBackground()
   if not SamisFishTrackerControlBG then
     local bg = WINDOW_MANAGER:CreateControl("SamisFishTrackerControlBG", SamisFishTrackerControl, CT_TEXTURE)
-    bg:SetDimensions(200, 75)
+    bg:SetDimensions(200, constants.windowHeightFull)
     bg:SetAnchor(TOPLEFT, SamisFishTrackerControl, TOPLEFT, 0, 0)
     bg:SetDrawLevel(-1)
     bg:SetColor(0, 0, 0, 0.8)
     SamisFishTrackerControlBG = bg
   end
+
+  if not SamisFishTrackerControlSeparatorLine then
+    local sep = WINDOW_MANAGER:CreateControl("SamisFishTrackerControlSeparatorLine", SamisFishTrackerControl, CT_TEXTURE)
+    sep:SetColor(0.80, 0.80, 0.80, 1)
+    sep:SetDimensions(170, 1)
+    sep:SetAnchor(BOTTOM, SamisFishTrackerControl, BOTTOM, 0, -26)
+    SamisFishTrackerControlSeparatorLine = sep
+  end
+end
+
+function SFT.UpdateAverageRateLabel(forceUpdate)
+  local isEnabled = isAverageRateEnabled()
+  SamisFishTrackerControlLabelAverage:SetHidden(not isEnabled)
+
+  if not isEnabled then
+    return
+  end
+
+  local autoUpdateEnabled = not SFT.savedVariables or SFT.savedVariables.averageRateAutoUpdateEnabled ~= false
+  if not autoUpdateEnabled and not forceUpdate then
+    return
+  end
+
+  SamisFishTrackerControlLabelAverage:SetText(formatAverageLabel())
 end
 
 function SFT.ResizeWindow()
   local bankHidden = SamisFishTrackerControlLabelBankFish:IsHidden()
   local newHeight = bankHidden and constants.windowHeightCollapsed or constants.windowHeightFull
+
+  if not isAverageRateEnabled() then
+    newHeight = newHeight - 15
+  end
   
   SamisFishTrackerControl:SetHeight(newHeight)
   if SamisFishTrackerControlBG then
@@ -47,6 +131,7 @@ end
 function SFT.RefreshStorageLabels()
   SamisFishTrackerControlLabelBagFish:SetText(formatIconLabel(constants.icons.bag, SFT.total_bag))
   SamisFishTrackerControlLabelBagRoe:SetText(formatRoeLabel(SFT.total_bag))
+  SFT.UpdateAverageRateLabel()
   SFT.UpdateBankDisplay()
 end
 
@@ -54,6 +139,7 @@ function SFT.UpdateFishCount(count)
   SFT.fishamount = count or 0
   SamisFishTrackerControlLabelFish:SetText(formatIconLabel(constants.icons.fish, SFT.fishamount))
   SamisFishTrackerControlLabelRoe:SetText(formatRoeLabel(SFT.fishamount))
+  SFT.UpdateAverageRateLabel()
 end
 
 function SFT.UpdateFishAmount(amount)
@@ -64,6 +150,9 @@ function SFT.UpdateFishAmount(amount)
 end
 
 function SFT.ResetFishAmount()
+  SFT.sessionStartTime = os.time()
+  SFT.averageRateCatchHistory = {}
   SFT.UpdateFishCount(0)
   SFT.savedVariables.amount = 0
+  SFT.UpdateAverageRateLabel()
 end

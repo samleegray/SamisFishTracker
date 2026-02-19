@@ -1,5 +1,22 @@
 local SFT = _G.SFT
 local visibility = SFT.constants.visibility
+local averageRateUpdateName = SFT.name .. "AverageRate"
+
+function SFT.ConfigureAverageRateAutoUpdate()
+  local intervalSeconds = tonumber(SFT.savedVariables.averageRateUpdateIntervalSeconds) or 1
+  intervalSeconds = math.max(1, math.min(60, intervalSeconds))
+  SFT.savedVariables.averageRateUpdateIntervalSeconds = intervalSeconds
+
+  EVENT_MANAGER:UnregisterForUpdate(averageRateUpdateName)
+
+  if SFT.savedVariables.averageRateAutoUpdateEnabled == false then
+    return
+  end
+
+  EVENT_MANAGER:RegisterForUpdate(averageRateUpdateName, intervalSeconds * 1000, function()
+    SFT.UpdateAverageRateLabel()
+  end)
+end
 
 function SFT.RestorePosition()
   local left = SFT.savedVariables.left
@@ -39,6 +56,8 @@ end
 
 function SFT.Initialize()
   SFT.fishamount = 0
+  SFT.sessionStartTime = os.time()
+  SFT.averageRateCatchHistory = {}
 
   EVENT_MANAGER:RegisterForEvent(SFT.name, EVENT_LOOT_RECEIVED, SFT.LootReceivedEvent)
   EVENT_MANAGER:RegisterForEvent(SFT.name, EVENT_CLOSE_BANK, SFT.UpdateTotal)
@@ -47,6 +66,12 @@ function SFT.Initialize()
   SFT.savedVariables = ZO_SavedVars:NewAccountWide("SFTSavedVariables", 1, nil, {
     amount = 0,
     visibility = visibility.HIDE,
+    roeRate = SFT.constants.roeRate,
+    showAverageRate = true,
+    averageRateAutoUpdateEnabled = true,
+    averageRateUpdateIntervalSeconds = 1,
+    averageRateUseRollingWindow = true,
+    averageRateRollingWindowSeconds = 300,
   })
 
   SamisFishTrackerControl:SetHandler("OnMoveStop", function()
@@ -55,12 +80,14 @@ function SFT.Initialize()
   end)
 
   SFT.InitializeBackground()
+  SFT.settingsInit()
   SFT.RefreshTotals()
   SFT.UpdateFishCount(SFT.savedVariables.amount or 0)
   SFT.RefreshStorageLabels()
   SFT.ApplyVisibilitySetting()
   SFT.RestorePosition()
   SFT.RegisterSlashCommands()
+  SFT.ConfigureAverageRateAutoUpdate()
 end
 
 function SFT.LootReceivedEvent(_, _, itemLink, quantity, _, _, self)
@@ -73,8 +100,10 @@ function SFT.LootReceivedEvent(_, _, itemLink, quantity, _, _, self)
   end
 
   local amount = quantity or 1
+  SFT.RecordFishCatch(amount)
   SFT.UpdateFishAmount(amount)
   SFT.savedVariables.amount = SFT.fishamount
+  SFT.UpdateAverageRateLabel(true)
 end
 
 function SFT.OnAddOnLoaded(_, addonName)

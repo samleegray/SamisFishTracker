@@ -7,10 +7,38 @@ An Elder Scrolls Online addon that tracks your fish inventory and estimates Perf
 [list]
 [*][b]Fish Counter[/b] - Tracks the number of fish you catch during your session
 [*][b]Inventory Display[/b] - Shows fish count in your bag and bank
-[*][b]Perfect Roe Estimation[/b] - Calculates expected Perfect Roe based on the 0.8% fillet rate
+[*][b]Perfect Roe Estimation[/b] - Calculates expected Perfect Roe using a configurable fillet rate
+[*][b]Average Fish Per Hour[/b] - Shows live fish/hour for your current session
 [*][b]Auto-Hide Mode[/b] - Optionally show the tracker only when looking at fishing holes
 [*][b]Movable Window[/b] - Drag to reposition; position is saved between sessions
+[*][b]Settings Panel[/b] - Configure visibility mode, roe rate, Average Fish Per Hour toggle, and actions in Settings > Addons > Sami's Fish Tracker
 [*][b]Account-Wide Saved Variables[/b] - Your settings persist across characters
+[/list]
+
+[size=5][b]Settings[/b][/size]
+
+[size=4][b]Display[/b][/size]
+[list]
+[*][b]Visibility Mode[/b] - Always Show, Always Hide, or Auto (Fishing Nodes)
+[*][b]Show Average Fish Per Hour[/b] - Toggle the Avg/hr line on or off (default: on)
+[/list]
+
+[size=4][b]Roe Estimation[/b][/size]
+[list]
+[*][b]Roe Rate Slider[/b] - Adjustable from 0.0001 to 0.1 (default: 0.008)
+[/list]
+
+[size=4][b]Average Fish Per Hour[/b][/size]
+[list]
+[*][b]Auto Update Avg/hr[/b] - Automatically refresh the value over time (default: on)
+[*][b]Avg/hr Update Frequency[/b] - Refresh interval from 1-60 seconds (default: 1 second)
+[*][b]Use Rolling Window for Avg/hr[/b] - Toggle between rolling-window (stable) and session-lifetime (volatile) calculation (default: on)
+[*][b]Rolling Window Duration[/b] - Time window for rolling average, 30-3600 seconds (default: 300 seconds / 5 minutes)
+[/list]
+
+[size=4][b]Actions[/b][/size]
+[list]
+[*][b]Reset Session Fish Count[/b] - Resets fish count and clears Avg/hr history
 [/list]
 
 [size=5][b]Commands[/b][/size]
@@ -21,7 +49,7 @@ An Elder Scrolls Online addon that tracks your fish inventory and estimates Perf
 [tr][td]/sft show[/td][td]Always show window[/td][/tr]
 [tr][td]/sft hide[/td][td]Always hide window[/td][/tr]
 [tr][td]/sft auto[/td][td]Show only when targeting a fishing hole[/td][/tr]
-[tr][td]/sft reset[/td][td]Reset fish count to 0[/td][/tr]
+[tr][td]/sft reset[/td][td]Reset fish count to 0 and restart session Avg/hr timing[/td][/tr]
 [/table]
 
 [size=5][b]Dependencies[/b][/size]

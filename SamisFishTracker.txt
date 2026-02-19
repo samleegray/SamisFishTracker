@@ -12,5 +12,6 @@ SFT_Core.lua
 SFT_Inventory.lua
 SFT_UI.lua
 SFT_Commands.lua
+SFT_Settings.lua
 SamisFishTracker.lua
 SamisFishTracker.xml
