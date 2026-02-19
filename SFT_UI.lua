@@ -74,6 +74,14 @@ function SFT.InitializeBackground()
     bg:SetColor(0, 0, 0, 0.8)
     SamisFishTrackerControlBG = bg
   end
+
+  if not SamisFishTrackerControlSeparatorLine then
+    local sep = WINDOW_MANAGER:CreateControl("SamisFishTrackerControlSeparatorLine", SamisFishTrackerControl, CT_TEXTURE)
+    sep:SetColor(0.80, 0.80, 0.80, 1)
+    sep:SetDimensions(170, 1)
+    sep:SetAnchor(BOTTOM, SamisFishTrackerControl, BOTTOM, 0, -26)
+    SamisFishTrackerControlSeparatorLine = sep
+  end
 end
 
 function SFT.UpdateAverageRateLabel(forceUpdate)
