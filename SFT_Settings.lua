@@ -118,19 +118,19 @@ function SFT.settingsInit()
   }
   optionsData[#optionsData + 1] = {
     type = "slider",
-    name = "Rolling Window Duration (seconds)",
+    name = "Rolling Window Duration (minutes)",
     tooltip = "Time window for rolling average calculation",
-    min = 30,
-    max = 3600,
-    step = 30,
+    min = 0.5,
+    max = 60,
+    step = 0.5,
     getFunc = function()
-      return SFT.savedVariables.averageRateRollingWindowSeconds or 300
+      return (SFT.savedVariables.averageRateRollingWindowSeconds or 300) / 60
     end,
     setFunc = function(value)
-      SFT.savedVariables.averageRateRollingWindowSeconds = value
+      SFT.savedVariables.averageRateRollingWindowSeconds = value * 60
       SFT.UpdateAverageRateLabel(true)
     end,
-    default = 300,
+    default = 5,
     disabled = function()
       return SFT.savedVariables.averageRateUseRollingWindow == false
     end,
