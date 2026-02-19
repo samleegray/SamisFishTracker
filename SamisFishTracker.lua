@@ -55,6 +55,7 @@ function SFT.Initialize()
   end)
 
   SFT.InitializeBackground()
+  SFT.settingsInit()
   SFT.RefreshTotals()
   SFT.UpdateFishCount(SFT.savedVariables.amount or 0)
   SFT.RefreshStorageLabels()
