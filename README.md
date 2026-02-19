@@ -6,10 +6,10 @@ An Elder Scrolls Online addon that tracks your fish inventory and estimates Perf
 
 - **Fish Counter** - Tracks the number of fish you catch during your session
 - **Inventory Display** - Shows fish count in your bag and bank
-- **Perfect Roe Estimation** - Calculates expected Perfect Roe based on the 0.8% fillet rate
+- **Perfect Roe Estimation** - Calculates expected Perfect Roe using a configurable fillet rate
 - **Auto-Hide Mode** - Optionally show the tracker only when looking at fishing holes
 - **Movable Window** - Drag to reposition; position is saved between sessions
-- **Settings Panel** - Configure visibility and actions in Settings > Addons > Sami's Fish Tracker
+- **Settings Panel** - Configure visibility, roe rate, and actions in Settings > Addons > Sami's Fish Tracker
 - **Account-Wide Saved Variables** - Your settings persist across characters
 
 ## Commands

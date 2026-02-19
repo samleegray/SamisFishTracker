@@ -60,6 +60,28 @@ function SFT.settingsInit()
 
   optionsData[#optionsData + 1] = {
     type = "header",
+    name = "Roe Estimation",
+  }
+  optionsData[#optionsData + 1] = {
+    type = "slider",
+    name = "Roe Rate",
+    tooltip = "Expected Perfect Roe chance per fish",
+    min = 0.0001,
+    max = 0.1,
+    step = 0.0001,
+    getFunc = function()
+      return SFT.savedVariables.roeRate or SFT.constants.roeRate
+    end,
+    setFunc = function(value)
+      SFT.savedVariables.roeRate = value
+      SFT.UpdateFishCount(SFT.fishamount)
+      SFT.RefreshStorageLabels()
+    end,
+    default = SFT.constants.roeRate,
+  }
+
+  optionsData[#optionsData + 1] = {
+    type = "header",
     name = "Actions",
   }
   optionsData[#optionsData + 1] = {

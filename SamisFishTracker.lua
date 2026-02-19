@@ -47,6 +47,7 @@ function SFT.Initialize()
   SFT.savedVariables = ZO_SavedVars:NewAccountWide("SFTSavedVariables", 1, nil, {
     amount = 0,
     visibility = visibility.HIDE,
+    roeRate = SFT.constants.roeRate,
   })
 
   SamisFishTrackerControl:SetHandler("OnMoveStop", function()

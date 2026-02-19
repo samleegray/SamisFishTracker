@@ -6,7 +6,8 @@ local function formatIconLabel(iconPath, amount)
 end
 
 local function formatRoeLabel(amount)
-  return string.format("Est. |t16:16:%s|t : %d", constants.icons.roe, amount * constants.roeRate)
+  local roeRate = SFT.savedVariables and SFT.savedVariables.roeRate or constants.roeRate
+  return string.format("Est. |t16:16:%s|t : %d", constants.icons.roe, amount * roeRate)
 end
 
 function SFT.InitializeBackground()

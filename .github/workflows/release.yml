@@ -53,7 +53,8 @@ jobs:
             SFT_Commands.lua \
             SFT_Core.lua \
             SFT_Inventory.lua \
-            SFT_UI.lua
+            SFT_UI.lua \
+            SFT_Settings.lua
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
