@@ -10,11 +10,55 @@ local function formatRoeLabel(amount)
   return string.format("Est. |t16:16:%s|t : %d", constants.icons.roe, amount * roeRate)
 end
 
+local function getCatchHistory()
+  if not SFT.averageRateCatchHistory then
+    SFT.averageRateCatchHistory = {}
+  end
+
+  return SFT.averageRateCatchHistory
+end
+
+local function pruneCatchHistory(now, windowSeconds)
+  local catchHistory = getCatchHistory()
+  local cutoff = now - windowSeconds
+
+  while #catchHistory > 0 and catchHistory[1].timestamp <= cutoff do
+    table.remove(catchHistory, 1)
+  end
+
+  return catchHistory
+end
+
+function SFT.RecordFishCatch(amount)
+  local catchHistory = getCatchHistory()
+  catchHistory[#catchHistory + 1] = {
+    timestamp = os.time(),
+    amount = amount or 0,
+  }
+end
+
 local function formatAverageLabel()
-  local sessionStartTime = SFT.sessionStartTime or os.time()
-  local elapsedSeconds = math.max(os.time() - sessionStartTime, 1)
-  local fishPerHour = (SFT.fishamount / elapsedSeconds) * 3600
-  return string.format("Avg/hr: %.1f", fishPerHour)
+  local useRollingWindow = not SFT.savedVariables or SFT.savedVariables.averageRateUseRollingWindow ~= false
+  
+  if useRollingWindow then
+    local windowSeconds = (SFT.savedVariables and SFT.savedVariables.averageRateRollingWindowSeconds) or 300
+    windowSeconds = math.max(1, math.min(3600, windowSeconds))
+    local now = os.time()
+    local catchHistory = pruneCatchHistory(now, windowSeconds)
+    local fishInWindow = 0
+
+    for i = 1, #catchHistory do
+      fishInWindow = fishInWindow + catchHistory[i].amount
+    end
+
+    local fishPerHour = (fishInWindow / windowSeconds) * 3600
+    return string.format("Avg/hr: %.1f", fishPerHour)
+  else
+    local sessionStartTime = SFT.sessionStartTime or os.time()
+    local elapsedSeconds = math.max(os.time() - sessionStartTime, 1)
+    local fishPerHour = (SFT.fishamount / elapsedSeconds) * 3600
+    return string.format("Avg/hr: %.1f", fishPerHour)
+  end
 end
 
 local function isAverageRateEnabled()
@@ -99,6 +143,7 @@ end
 
 function SFT.ResetFishAmount()
   SFT.sessionStartTime = os.time()
+  SFT.averageRateCatchHistory = {}
   SFT.UpdateFishCount(0)
   SFT.savedVariables.amount = 0
   SFT.UpdateAverageRateLabel()

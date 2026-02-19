@@ -103,6 +103,38 @@ function SFT.settingsInit()
       return SFT.savedVariables.averageRateAutoUpdateEnabled == false
     end,
   }
+  optionsData[#optionsData + 1] = {
+    type = "checkbox",
+    name = "Use Rolling Window for Avg/hr",
+    tooltip = "Use a rolling window (stable rate) instead of session lifetime (volatile early-session)",
+    getFunc = function()
+      return SFT.savedVariables.averageRateUseRollingWindow ~= false
+    end,
+    setFunc = function(value)
+      SFT.savedVariables.averageRateUseRollingWindow = value
+      SFT.UpdateAverageRateLabel(true)
+    end,
+    default = true,
+  }
+  optionsData[#optionsData + 1] = {
+    type = "slider",
+    name = "Rolling Window Duration (seconds)",
+    tooltip = "Time window for rolling average calculation",
+    min = 30,
+    max = 3600,
+    step = 30,
+    getFunc = function()
+      return SFT.savedVariables.averageRateRollingWindowSeconds or 300
+    end,
+    setFunc = function(value)
+      SFT.savedVariables.averageRateRollingWindowSeconds = value
+      SFT.UpdateAverageRateLabel(true)
+    end,
+    default = 300,
+    disabled = function()
+      return SFT.savedVariables.averageRateUseRollingWindow == false
+    end,
+  }
 
   optionsData[#optionsData + 1] = {
     type = "header",

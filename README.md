@@ -15,10 +15,21 @@ An Elder Scrolls Online addon that tracks your fish inventory and estimates Perf
 
 ## Settings
 
+### Display
 - **Visibility Mode** - Always Show, Always Hide, or Auto (Fishing Nodes)
-- **Roe Rate Slider** - Adjustable from `0.0001` to `0.1`
 - **Show Average Fish Per Hour** - Toggle the Avg/hr line on or off (default: on)
-- **Reset Session Fish Count** - Resets fish count and restarts Avg/hr session timing
+
+### Roe Estimation
+- **Roe Rate Slider** - Adjustable from `0.0001` to `0.1` (default: 0.008)
+
+### Average Fish Per Hour
+- **Auto Update Avg/hr** - Automatically refresh the value over time (default: on)
+- **Avg/hr Update Frequency** - Refresh interval from 1–60 seconds (default: 1 second)
+- **Use Rolling Window for Avg/hr** - Toggle between rolling-window (stable) and session-lifetime (volatile) calculation (default: on)
+- **Rolling Window Duration** - Time window for rolling average, 30–3600 seconds (default: 300 seconds / 5 minutes)
+
+### Actions
+- **Reset Session Fish Count** - Resets fish count and clears Avg/hr history
 
 ## Commands
 

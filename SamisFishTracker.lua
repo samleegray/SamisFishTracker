@@ -57,6 +57,7 @@ end
 function SFT.Initialize()
   SFT.fishamount = 0
   SFT.sessionStartTime = os.time()
+  SFT.averageRateCatchHistory = {}
 
   EVENT_MANAGER:RegisterForEvent(SFT.name, EVENT_LOOT_RECEIVED, SFT.LootReceivedEvent)
   EVENT_MANAGER:RegisterForEvent(SFT.name, EVENT_CLOSE_BANK, SFT.UpdateTotal)
@@ -69,6 +70,8 @@ function SFT.Initialize()
     showAverageRate = true,
     averageRateAutoUpdateEnabled = true,
     averageRateUpdateIntervalSeconds = 1,
+    averageRateUseRollingWindow = true,
+    averageRateRollingWindowSeconds = 300,
   })
 
   SamisFishTrackerControl:SetHandler("OnMoveStop", function()
@@ -97,6 +100,7 @@ function SFT.LootReceivedEvent(_, _, itemLink, quantity, _, _, self)
   end
 
   local amount = quantity or 1
+  SFT.RecordFishCatch(amount)
   SFT.UpdateFishAmount(amount)
   SFT.savedVariables.amount = SFT.fishamount
   SFT.UpdateAverageRateLabel(true)

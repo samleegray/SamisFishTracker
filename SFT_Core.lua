@@ -10,6 +10,7 @@ SFT.total_bank = 0
 
 SFT.constants = {
   roeRate = 0.008,
+  averageRateWindowSeconds = 300,
   windowHeightFull = 90,
   windowHeightCollapsed = 65,
   icons = {
