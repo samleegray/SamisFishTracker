@@ -26,7 +26,7 @@ An Elder Scrolls Online addon that tracks your fish inventory and estimates Perf
 - **Auto Update Avg/hr** - Automatically refresh the value over time (default: on)
 - **Avg/hr Update Frequency** - Refresh interval from 1–60 seconds (default: 1 second)
 - **Use Rolling Window for Avg/hr** - Toggle between rolling-window (stable) and session-lifetime (volatile) calculation (default: on)
-- **Rolling Window Duration** - Time window for rolling average, 30–3600 seconds (default: 300 seconds / 5 minutes)
+- **Rolling Window Duration** - Time window for rolling average, 0.5–60 minutes (default: 5 minutes)
 
 ### Actions
 - **Reset Session Fish Count** - Resets fish count and clears Avg/hr history
