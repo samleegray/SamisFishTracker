@@ -37,6 +37,7 @@ function SFT.Initialize()
     SFT.savedVariables.top = SamisFishTrackerControl:GetTop()
   end)
 
+  SFT.InitializeBackground()
   SFT.RefreshTotals()
   SFT.UpdateFishCount(SFT.savedVariables.amount or 0)
   SFT.RefreshStorageLabels()

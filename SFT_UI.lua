@@ -9,6 +9,17 @@ local function formatRoeLabel(amount)
   return string.format("Est. |t16:16:%s|t : %d", constants.icons.roe, amount * constants.roeRate)
 end
 
+function SFT.InitializeBackground()
+  if not SamisFishTrackerControlBG then
+    local bg = WINDOW_MANAGER:CreateControl("SamisFishTrackerControlBG", SamisFishTrackerControl, CT_TEXTURE)
+    bg:SetDimensions(200, 75)
+    bg:SetAnchor(TOPLEFT, SamisFishTrackerControl, TOPLEFT, 0, 0)
+    bg:SetDrawLevel(-1)
+    bg:SetColor(0, 0, 0, 0.8)
+    SamisFishTrackerControlBG = bg
+  end
+end
+
 function SFT.UpdateBankDisplay()
   if SFT.total_bank <= 0 then
     SamisFishTrackerControlLabelBankFish:SetHidden(true)
