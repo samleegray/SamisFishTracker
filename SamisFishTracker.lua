@@ -21,11 +21,28 @@ function SFT.ApplyVisibilitySetting()
   end
 end
 
+function SFT.OnInventoryUpdate(eventCode, itemSoundCategory)
+  SFT.RefreshTotals()
+  SFT.RefreshStorageLabels()
+  -- Sync session count to actual bag count so it reflects current inventory
+  SFT.UpdateFishCount(SFT.total_bag)
+  SFT.savedVariables.amount = SFT.total_bag
+  
+  -- Refresh again after 2 seconds to account for any inventory state settling delay
+  zo_callLater(function()
+    SFT.RefreshTotals()
+    SFT.RefreshStorageLabels()
+    SFT.UpdateFishCount(SFT.total_bag)
+    SFT.savedVariables.amount = SFT.total_bag
+  end, 2000)
+end
+
 function SFT.Initialize()
   SFT.fishamount = 0
 
   EVENT_MANAGER:RegisterForEvent(SFT.name, EVENT_LOOT_RECEIVED, SFT.LootReceivedEvent)
   EVENT_MANAGER:RegisterForEvent(SFT.name, EVENT_CLOSE_BANK, SFT.UpdateTotal)
+  EVENT_MANAGER:RegisterForEvent(SFT.name, EVENT_INVENTORY_ITEM_USED, SFT.OnInventoryUpdate)
 
   SFT.savedVariables = ZO_SavedVars:NewAccountWide("SFTSavedVariables", 1, nil, {
     amount = 0,

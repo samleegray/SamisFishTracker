@@ -20,19 +20,28 @@ function SFT.InitializeBackground()
   end
 end
 
+function SFT.ResizeWindow()
+  local bankHidden = SamisFishTrackerControlLabelBankFish:IsHidden()
+  local newHeight = bankHidden and constants.windowHeightCollapsed or constants.windowHeightFull
+  
+  SamisFishTrackerControl:SetHeight(newHeight)
+  if SamisFishTrackerControlBG then
+    SamisFishTrackerControlBG:SetDimensions(200, newHeight)
+  end
+end
+
 function SFT.UpdateBankDisplay()
   if SFT.total_bank <= 0 then
     SamisFishTrackerControlLabelBankFish:SetHidden(true)
     SamisFishTrackerControlLabelBankRoe:SetHidden(true)
-    SamisFishTrackerControl:SetHeight(constants.windowHeightCollapsed)
-    return
+  else
+    SamisFishTrackerControlLabelBankFish:SetHidden(false)
+    SamisFishTrackerControlLabelBankRoe:SetHidden(false)
+    SamisFishTrackerControlLabelBankFish:SetText(formatIconLabel(constants.icons.bank, SFT.total_bank))
+    SamisFishTrackerControlLabelBankRoe:SetText(formatRoeLabel(SFT.total_bank))
   end
-
-  SamisFishTrackerControlLabelBankFish:SetHidden(false)
-  SamisFishTrackerControlLabelBankRoe:SetHidden(false)
-  SamisFishTrackerControl:SetHeight(constants.windowHeightFull)
-  SamisFishTrackerControlLabelBankFish:SetText(formatIconLabel(constants.icons.bank, SFT.total_bank))
-  SamisFishTrackerControlLabelBankRoe:SetText(formatRoeLabel(SFT.total_bank))
+  
+  SFT.ResizeWindow()
 end
 
 function SFT.RefreshStorageLabels()
