@@ -44,7 +44,6 @@ jobs:
       - name: Create zip file
         run: |
           zip -r SamisFishTracker.zip \
-            bindings.xml \
             LICENSE.md \
             README.md \
             SamisFishTracker.lua \
