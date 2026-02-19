@@ -39,6 +39,7 @@ end
 
 function SFT.Initialize()
   SFT.fishamount = 0
+  SFT.sessionStartTime = os.time()
 
   EVENT_MANAGER:RegisterForEvent(SFT.name, EVENT_LOOT_RECEIVED, SFT.LootReceivedEvent)
   EVENT_MANAGER:RegisterForEvent(SFT.name, EVENT_CLOSE_BANK, SFT.UpdateTotal)
@@ -48,6 +49,7 @@ function SFT.Initialize()
     amount = 0,
     visibility = visibility.HIDE,
     roeRate = SFT.constants.roeRate,
+    showAverageRate = true,
   })
 
   SamisFishTrackerControl:SetHandler("OnMoveStop", function()
@@ -63,6 +65,10 @@ function SFT.Initialize()
   SFT.ApplyVisibilitySetting()
   SFT.RestorePosition()
   SFT.RegisterSlashCommands()
+
+  EVENT_MANAGER:RegisterForUpdate(SFT.name .. "AverageRate", 1000, function()
+    SFT.UpdateAverageRateLabel()
+  end)
 end
 
 function SFT.LootReceivedEvent(_, _, itemLink, quantity, _, _, self)

@@ -2,7 +2,7 @@
   <Controls>
   
     <TopLevelControl name="SamisFishTrackerControl" mouseEnabled="true" movable="true" hidden="false" clampedToScreen="true" tier="LOW" resizeHandleSize="5">
-      <Dimensions x="200" y="75" />
+      <Dimensions x="200" y="90" />
       <Anchor point="TOPLEFT" relativeTo="GuiRoot" relativePoint="TOPLEFT" />
  
       <Controls>
@@ -32,6 +32,11 @@
         <Label name="$(parent)LabelBankRoe" width="100" height="12" font="ZoFontChat" inheritAlpha="true" color="FFFFFF"
             wrapMode="TRUNCATE" verticalAlignment="TOP" horizontalAlignment="RIGHT" text="Est. |t16:16:/esoui/art/icons/crafting_heavy_armor_vendor_component_002.dds|t : 0">
           <Anchor point="TOPRIGHT" relativeTo="$(parent)" relativePoint="TOPRIGHT" offsetX="-15" offsetY="50" />
+        </Label>
+
+        <Label name="$(parent)LabelAverage" width="180" height="12" font="ZoFontChat" inheritAlpha="true" color="FFFFFF"
+            wrapMode="TRUNCATE" verticalAlignment="TOP" horizontalAlignment="CENTER" text="Avg/hr: 0.0">
+          <Anchor point="BOTTOM" relativeTo="$(parent)" relativePoint="BOTTOM" offsetY="-4" />
         </Label>
         
       </Controls>

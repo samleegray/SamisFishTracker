@@ -57,6 +57,20 @@ function SFT.settingsInit()
       SFT.ApplyVisibilitySetting()
     end,
   }
+  optionsData[#optionsData + 1] = {
+    type = "checkbox",
+    name = "Show Average Fish Per Hour",
+    tooltip = "Show or hide the Avg/hr line in the tracker window",
+    getFunc = function()
+      return SFT.savedVariables.showAverageRate ~= false
+    end,
+    setFunc = function(value)
+      SFT.savedVariables.showAverageRate = value
+      SFT.UpdateAverageRateLabel()
+      SFT.ResizeWindow()
+    end,
+    default = true,
+  }
 
   optionsData[#optionsData + 1] = {
     type = "header",

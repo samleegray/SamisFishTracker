@@ -10,8 +10,8 @@ SFT.total_bank = 0
 
 SFT.constants = {
   roeRate = 0.008,
-  windowHeightFull = 75,
-  windowHeightCollapsed = 50,
+  windowHeightFull = 90,
+  windowHeightCollapsed = 65,
   icons = {
     fish = "esoui/art/icons/crafting_fishing_perch.dds",
     bag = "esoui/art/tooltips/icon_bag.dds",
