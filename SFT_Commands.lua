@@ -1,4 +1,4 @@
-local SFT = _G.SFT
+local SFT = SamisFishTrackerAddon
 local visibility = SFT.constants.visibility
 
 local function setVisibility(mode)

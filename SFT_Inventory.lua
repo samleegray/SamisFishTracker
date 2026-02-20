@@ -1,4 +1,4 @@
-local SFT = _G.SFT
+local SFT = SamisFishTrackerAddon
 local excludedFishItemIds = SFT.constants.excludedFishItemIds
 
 function SFT.IsTrackableFish(itemLink)

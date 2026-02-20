@@ -1,12 +1,13 @@
 ## Title: SamisFishTracker
-## Version: 1.0.0
+## Version: 1.0.1
 ## APIVersion: 101048
-## Author: samihaize
+## AddOnVersion: 2
+## Author: |cf939dasamihaize|r
 ## Description: Keeps track of your fishies.
 ## IsLibrary: false
-## SavedVariables: SFTSavedVariables
-## DependsOn: LibAddonMenu-2.0
-## OptionalDependsOn: LibSlashCommander
+## SavedVariables: SamisFishTrackerSavedVariables
+## DependsOn: LibAddonMenu-2.0>=41
+## OptionalDependsOn: LibSlashCommander>=45
 
 SFT_Core.lua
 SFT_Inventory.lua
