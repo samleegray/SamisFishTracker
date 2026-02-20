@@ -10,6 +10,10 @@ local function formatRoeLabel(amount)
   return string.format("Est. |t16:16:%s|t : %d", constants.icons.roe, amount * roeRate)
 end
 
+local function formatRareLabel(colorCode, label, amount)
+  return string.format("|c%s%s: %d|r", colorCode, label, amount)
+end
+
 local function getCatchHistory()
   if not SFT.averageRateCatchHistory then
     SFT.averageRateCatchHistory = {}
@@ -65,6 +69,10 @@ local function isAverageRateEnabled()
   return not SFT.savedVariables or SFT.savedVariables.showAverageRate ~= false
 end
 
+local function isRareFishEnabled()
+  return not SFT.savedVariables or SFT.savedVariables.trackRareFish ~= false
+end
+
 function SFT.InitializeBackground()
   if not SFT.windowBackground then
     local background = WINDOW_MANAGER:CreateControl(nil, SamisFishTrackerControl, CT_TEXTURE)
@@ -115,22 +123,47 @@ function SFT.ResizeWindow()
 end
 
 function SFT.UpdateBankDisplay()
-  if SFT.total_bank <= 0 then
+  local hasBankTotals = (SFT.total_bank or 0) > 0
+    or (SFT.total_rare_bank_green or 0) > 0
+    or (SFT.total_rare_bank_blue or 0) > 0
+
+  if not hasBankTotals then
     SamisFishTrackerControlLabelBankFish:SetHidden(true)
     SamisFishTrackerControlLabelBankRoe:SetHidden(true)
+    SamisFishTrackerControlLabelBankRareGreen:SetHidden(true)
+    SamisFishTrackerControlLabelBankRareBlue:SetHidden(true)
   else
     SamisFishTrackerControlLabelBankFish:SetHidden(false)
     SamisFishTrackerControlLabelBankRoe:SetHidden(false)
-    SamisFishTrackerControlLabelBankFish:SetText(formatIconLabel(constants.icons.bank, SFT.total_bank))
-    SamisFishTrackerControlLabelBankRoe:SetText(formatRoeLabel(SFT.total_bank))
+    SamisFishTrackerControlLabelBankFish:SetText(formatIconLabel(constants.icons.bank, SFT.total_bank or 0))
+    SamisFishTrackerControlLabelBankRoe:SetText(formatRoeLabel(SFT.total_bank or 0))
+
+    if isRareFishEnabled() then
+      SamisFishTrackerControlLabelBankRareGreen:SetHidden(false)
+      SamisFishTrackerControlLabelBankRareBlue:SetHidden(false)
+      SamisFishTrackerControlLabelBankRareGreen:SetText(formatRareLabel("5BFF7A", "Rare G", SFT.total_rare_bank_green or 0))
+      SamisFishTrackerControlLabelBankRareBlue:SetText(formatRareLabel("66B2FF", "Rare B", SFT.total_rare_bank_blue or 0))
+    else
+      SamisFishTrackerControlLabelBankRareGreen:SetHidden(true)
+      SamisFishTrackerControlLabelBankRareBlue:SetHidden(true)
+    end
   end
   
   SFT.ResizeWindow()
 end
 
 function SFT.RefreshStorageLabels()
-  SamisFishTrackerControlLabelBagFish:SetText(formatIconLabel(constants.icons.bag, SFT.total_bag))
-  SamisFishTrackerControlLabelBagRoe:SetText(formatRoeLabel(SFT.total_bag))
+  SamisFishTrackerControlLabelBagFish:SetText(formatIconLabel(constants.icons.bag, SFT.total_bag or 0))
+  SamisFishTrackerControlLabelBagRoe:SetText(formatRoeLabel(SFT.total_bag or 0))
+  if isRareFishEnabled() then
+    SamisFishTrackerControlLabelBagRareGreen:SetHidden(false)
+    SamisFishTrackerControlLabelBagRareBlue:SetHidden(false)
+    SamisFishTrackerControlLabelBagRareGreen:SetText(formatRareLabel("5BFF7A", "Rare G", SFT.total_rare_bag_green or 0))
+    SamisFishTrackerControlLabelBagRareBlue:SetText(formatRareLabel("66B2FF", "Rare B", SFT.total_rare_bag_blue or 0))
+  else
+    SamisFishTrackerControlLabelBagRareGreen:SetHidden(true)
+    SamisFishTrackerControlLabelBagRareBlue:SetHidden(true)
+  end
   SFT.UpdateAverageRateLabel()
   SFT.UpdateBankDisplay()
 end
@@ -145,13 +178,32 @@ end
 function SFT.UpdateFishAmount(amount)
   local increment = amount or 0
   SFT.UpdateFishCount(SFT.fishamount + increment)
-  SFT.total_bag = SFT.total_bag + increment
+  SFT.total_bag = (SFT.total_bag or 0) + increment
+  SFT.RefreshStorageLabels()
+end
+
+function SFT.UpdateRareFishAmount(amount, quality)
+  local increment = amount or 0
+  if increment <= 0 then
+    return
+  end
+
+  if quality == ITEM_QUALITY_UNCOMMON then
+    SFT.sessionRareGreen = (SFT.sessionRareGreen or 0) + increment
+    SFT.total_rare_bag_green = (SFT.total_rare_bag_green or 0) + increment
+  elseif quality == ITEM_QUALITY_MAGIC then
+    SFT.sessionRareBlue = (SFT.sessionRareBlue or 0) + increment
+    SFT.total_rare_bag_blue = (SFT.total_rare_bag_blue or 0) + increment
+  end
+
   SFT.RefreshStorageLabels()
 end
 
 function SFT.ResetFishAmount()
   SFT.sessionStartTime = os.time()
   SFT.averageRateCatchHistory = {}
+  SFT.sessionRareGreen = 0
+  SFT.sessionRareBlue = 0
   SFT.UpdateFishCount(0)
   SFT.savedVariables.amount = 0
   SFT.UpdateAverageRateLabel()

@@ -59,6 +59,20 @@ function SFT.settingsInit()
   }
   optionsData[#optionsData + 1] = {
     type = "checkbox",
+    name = "Track Rare Fish Separately",
+    tooltip = "Count rare fish in separate green/blue totals",
+    getFunc = function()
+      return SFT.savedVariables.trackRareFish ~= false
+    end,
+    setFunc = function(value)
+      SFT.savedVariables.trackRareFish = value
+      SFT.RefreshTotals()
+      SFT.RefreshStorageLabels()
+    end,
+    default = true,
+  }
+  optionsData[#optionsData + 1] = {
+    type = "checkbox",
     name = "Show Average Fish Per Hour",
     tooltip = "Show or hide the Avg/hr line in the tracker window",
     getFunc = function()

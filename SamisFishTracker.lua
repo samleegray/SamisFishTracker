@@ -56,6 +56,12 @@ end
 
 function SFT.Initialize()
   SFT.fishamount = 0
+  SFT.sessionRareGreen = 0
+  SFT.sessionRareBlue = 0
+  SFT.total_rare_bag_green = 0
+  SFT.total_rare_bag_blue = 0
+  SFT.total_rare_bank_green = 0
+  SFT.total_rare_bank_blue = 0
   SFT.sessionStartTime = os.time()
   SFT.averageRateCatchHistory = {}
 
@@ -67,6 +73,7 @@ function SFT.Initialize()
     amount = 0,
     visibility = visibility.HIDE,
     roeRate = SFT.constants.roeRate,
+    trackRareFish = true,
     showAverageRate = true,
     averageRateAutoUpdateEnabled = true,
     averageRateUpdateIntervalSeconds = 1,
@@ -95,11 +102,17 @@ function SFT.LootReceivedEvent(_, _, itemLink, quantity, _, _, self)
     return
   end
 
+  local amount = quantity or 1
+  local rareQuality = SFT.GetRareFishQuality(itemLink)
+  if rareQuality then
+    SFT.UpdateRareFishAmount(amount, rareQuality)
+    return
+  end
+
   if not SFT.IsTrackableFish(itemLink) then
     return
   end
 
-  local amount = quantity or 1
   SFT.RecordFishCatch(amount)
   SFT.UpdateFishAmount(amount)
   SFT.savedVariables.amount = SFT.fishamount
