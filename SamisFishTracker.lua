@@ -1,4 +1,4 @@
-local SFT = _G.SFT
+local SFT = SamisFishTrackerAddon
 local visibility = SFT.constants.visibility
 local averageRateUpdateName = SFT.name .. "AverageRate"
 
@@ -63,7 +63,7 @@ function SFT.Initialize()
   EVENT_MANAGER:RegisterForEvent(SFT.name, EVENT_CLOSE_BANK, SFT.UpdateTotal)
   EVENT_MANAGER:RegisterForEvent(SFT.name, EVENT_INVENTORY_ITEM_USED, SFT.OnInventoryUpdate)
 
-  SFT.savedVariables = ZO_SavedVars:NewAccountWide("SFTSavedVariables", 1, nil, {
+  SFT.savedVariables = ZO_SavedVars:NewAccountWide("SamisFishTrackerSavedVariables", 1, nil, {
     amount = 0,
     visibility = visibility.HIDE,
     roeRate = SFT.constants.roeRate,

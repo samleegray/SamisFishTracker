@@ -1,4 +1,4 @@
-local SFT = _G.SFT
+local SFT = SamisFishTrackerAddon
 local constants = SFT.constants
 
 local function formatIconLabel(iconPath, amount)
@@ -66,21 +66,21 @@ local function isAverageRateEnabled()
 end
 
 function SFT.InitializeBackground()
-  if not SamisFishTrackerControlBG then
-    local bg = WINDOW_MANAGER:CreateControl("SamisFishTrackerControlBG", SamisFishTrackerControl, CT_TEXTURE)
-    bg:SetDimensions(200, constants.windowHeightFull)
-    bg:SetAnchor(TOPLEFT, SamisFishTrackerControl, TOPLEFT, 0, 0)
-    bg:SetDrawLevel(-1)
-    bg:SetColor(0, 0, 0, 0.8)
-    SamisFishTrackerControlBG = bg
+  if not SFT.windowBackground then
+    local background = WINDOW_MANAGER:CreateControl(nil, SamisFishTrackerControl, CT_TEXTURE)
+    background:SetDimensions(200, constants.windowHeightFull)
+    background:SetAnchor(TOPLEFT, SamisFishTrackerControl, TOPLEFT, 0, 0)
+    background:SetDrawLevel(-1)
+    background:SetColor(0, 0, 0, 0.8)
+    SFT.windowBackground = background
   end
 
-  if not SamisFishTrackerControlSeparatorLine then
-    local sep = WINDOW_MANAGER:CreateControl("SamisFishTrackerControlSeparatorLine", SamisFishTrackerControl, CT_TEXTURE)
-    sep:SetColor(0.80, 0.80, 0.80, 1)
-    sep:SetDimensions(170, 1)
-    sep:SetAnchor(BOTTOM, SamisFishTrackerControl, BOTTOM, 0, -26)
-    SamisFishTrackerControlSeparatorLine = sep
+  if not SFT.windowSeparatorLine then
+    local separatorLine = WINDOW_MANAGER:CreateControl(nil, SamisFishTrackerControl, CT_TEXTURE)
+    separatorLine:SetColor(0.80, 0.80, 0.80, 1)
+    separatorLine:SetDimensions(170, 1)
+    separatorLine:SetAnchor(BOTTOM, SamisFishTrackerControl, BOTTOM, 0, -26)
+    SFT.windowSeparatorLine = separatorLine
   end
 end
 
@@ -109,8 +109,8 @@ function SFT.ResizeWindow()
   end
   
   SamisFishTrackerControl:SetHeight(newHeight)
-  if SamisFishTrackerControlBG then
-    SamisFishTrackerControlBG:SetDimensions(200, newHeight)
+  if SFT.windowBackground then
+    SFT.windowBackground:SetDimensions(200, newHeight)
   end
 end
 

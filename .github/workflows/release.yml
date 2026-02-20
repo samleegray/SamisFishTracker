@@ -43,17 +43,18 @@ jobs:
 
       - name: Create zip file
         run: |
-          zip -r SamisFishTracker.zip \
-            LICENSE.md \
-            README.md \
-            SamisFishTracker.lua \
+          mkdir -p SamisFishTracker
+          cp SamisFishTracker.lua \
             SamisFishTracker.txt \
             SamisFishTracker.xml \
             SFT_Commands.lua \
             SFT_Core.lua \
             SFT_Inventory.lua \
             SFT_UI.lua \
-            SFT_Settings.lua
+            SFT_Settings.lua \
+            SamisFishTracker/
+          zip -r SamisFishTracker.zip SamisFishTracker/
+            
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1

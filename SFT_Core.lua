@@ -1,5 +1,6 @@
-local SFT = _G.SFT or {}
-_G.SFT = SFT
+SamisFishTrackerAddon = SamisFishTrackerAddon or {}
+
+local SFT = SamisFishTrackerAddon
 
 SFT.name = "SamisFishTracker"
 SFT.version = "1.0.0"
