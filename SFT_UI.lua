@@ -118,9 +118,10 @@ end
 function SFT.UpdateFilletStatsLabel()
   local sinceRoe = SFT.filletsSinceRoe or 0
   local lastFillets = SFT.lastRoeFillets or 0
-  local lastPercent = SFT.lastRoeRatePercent or 0
-  SamisFilletTrackerControlLabelFilletStats:SetText(string.format("Fillets since Roe: %d (Last: %d, %.2f%%)", sinceRoe,
-    lastFillets, lastPercent))
+  local observedPercent = SFT.lastRoeRatePercent or 0
+  SamisFilletTrackerControlLabelFilletStats:SetText(string.format("Fillets since Roe: %d (Last: %d, Obs: %.2f%%)",
+    sinceRoe,
+    lastFillets, observedPercent))
 end
 
 function SFT.ResizeWindow()

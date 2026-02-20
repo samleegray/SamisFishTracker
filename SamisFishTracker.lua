@@ -14,7 +14,6 @@ local function iterateThroughEntireBag()
     local itemLink = GetItemLink(bagId, slotIndex, 1)
     if itemLink and GetItemLinkItemType(itemLink) == ITEMTYPE_FISH then
       newLinks[slotIndex] = itemLink
-      d("Found a fishy item in bag slot " .. tostring(slotIndex) .. ": " .. tostring(itemLink))
     end
   end
 
@@ -107,12 +106,23 @@ function SFT.Initialize()
     amount = 0,
     visibility = visibility.HIDE,
     roeRate = SFT.constants.roeRate,
+    filletCountTotal = 0,
+    filletsSinceRoe = 0,
+    lastRoeFillets = 0,
+    lastRoeRatePercent = 0,
+    totalRoeFound = 0,
     showAverageRate = true,
     averageRateAutoUpdateEnabled = true,
     averageRateUpdateIntervalSeconds = 1,
     averageRateUseRollingWindow = true,
     averageRateRollingWindowSeconds = 300,
   })
+
+  SFT.filletCountTotal = tonumber(SFT.savedVariables.filletCountTotal) or 0
+  SFT.filletsSinceRoe = tonumber(SFT.savedVariables.filletsSinceRoe) or 0
+  SFT.lastRoeFillets = tonumber(SFT.savedVariables.lastRoeFillets) or 0
+  SFT.lastRoeRatePercent = tonumber(SFT.savedVariables.lastRoeRatePercent) or 0
+  SFT.total_roe_found = tonumber(SFT.savedVariables.totalRoeFound) or 0
 
   SamisFishTrackerControl:SetHandler("OnMoveStop", function()
     SFT.savedVariables.left = SamisFishTrackerControl:GetLeft()
@@ -161,6 +171,16 @@ function SFT.RegisterFilletCount(amount)
 
   SFT.filletCountTotal = (SFT.filletCountTotal or 0) + increment
   SFT.filletsSinceRoe = (SFT.filletsSinceRoe or 0) + increment
+  local totalFillets = SFT.filletCountTotal or 0
+  local totalRoeFound = SFT.total_roe_found or 0
+  if totalFillets > 0 then
+    SFT.lastRoeRatePercent = (totalRoeFound / totalFillets) * 100
+  else
+    SFT.lastRoeRatePercent = 0
+  end
+  SFT.savedVariables.filletCountTotal = SFT.filletCountTotal
+  SFT.savedVariables.filletsSinceRoe = SFT.filletsSinceRoe
+  SFT.savedVariables.lastRoeRatePercent = SFT.lastRoeRatePercent
   if SFT.UpdateFilletStatsLabel then
     SFT.UpdateFilletStatsLabel()
   end
@@ -179,10 +199,19 @@ function SFT.OnPerfectRoeFound(amount)
     SFT.lastRoeRatePercent = (1 / filletsSinceRoe) * 100
   else
     SFT.lastRoeFillets = 0
-    SFT.lastRoeRatePercent = 0
   end
 
   SFT.filletsSinceRoe = 0
+  local totalFillets = SFT.filletCountTotal or 0
+  if totalFillets > 0 then
+    SFT.lastRoeRatePercent = (SFT.total_roe_found / totalFillets) * 100
+  else
+    SFT.lastRoeRatePercent = 0
+  end
+  SFT.savedVariables.totalRoeFound = SFT.total_roe_found
+  SFT.savedVariables.filletsSinceRoe = SFT.filletsSinceRoe
+  SFT.savedVariables.lastRoeFillets = SFT.lastRoeFillets
+  SFT.savedVariables.lastRoeRatePercent = SFT.lastRoeRatePercent
   SFT.RefreshTotals()
   SFT.RefreshStorageLabels()
   if SFT.UpdateFilletStatsLabel then
@@ -190,19 +219,49 @@ function SFT.OnPerfectRoeFound(amount)
   end
 end
 
+function SFT.ResetRoeFilletTracking()
+  SFT.filletCountTotal = 0
+  SFT.filletsSinceRoe = 0
+  SFT.lastRoeFillets = 0
+  SFT.lastRoeRatePercent = 0
+  SFT.total_roe_found = 0
+
+  SFT.savedVariables.filletCountTotal = 0
+  SFT.savedVariables.filletsSinceRoe = 0
+  SFT.savedVariables.lastRoeFillets = 0
+  SFT.savedVariables.lastRoeRatePercent = 0
+  SFT.savedVariables.totalRoeFound = 0
+
+  SFT.RefreshTotals()
+  SFT.RefreshStorageLabels()
+end
+
+function SFT.ApplyLastRoeRateToRoeRateSetting()
+  local percentValue = tonumber(SFT.lastRoeRatePercent) or 0
+  local rateValue = percentValue / 100
+  local clampedRate = math.max(0.0001, math.min(0.1, rateValue))
+
+  SFT.savedVariables.roeRate = clampedRate
+  SFT.UpdateFishCount(SFT.fishamount)
+  SFT.RefreshStorageLabels()
+end
+
 local function handleInventoryAddition(bagId, slotIndex, stackCountChange)
   if bagId == BAG_BACKPACK and stackCountChange > 0 then
     iterateThroughEntireBag()
   end
 
-  local itemLink = GetItemLink(bagId, slotIndex) or SFT.utils.getCachedFishItemLink(slotIndex)
+  local itemLink = GetItemLink(bagId, slotIndex)
+  if (not itemLink or itemLink == "") and SFT.utils.getCachedFishItemLink(slotIndex) ~= nil then
+    itemLink = SFT.utils.getCachedFishItemLink(slotIndex)
+  end
+
   if not itemLink or itemLink == "" then
-    d("No item link found for Bag ADDITION: " .. tostring(bagId) .. ", Slot: " .. tostring(slotIndex))
     return
   end
 
   local itemId = GetItemLinkItemId(itemLink)
-  if itemId == SFT.constants.perfectRoeItemId and stackCountChange > 0 then
+  if bagId == BAG_VIRTUAL and itemId == SFT.constants.perfectRoeItemId and stackCountChange > 0 then
     SFT.OnPerfectRoeFound(stackCountChange)
     return
   end
@@ -210,18 +269,7 @@ end
 
 function SFT.OnInventorySlotUpdate(eventCode, bagId, slotIndex, isNewItem, itemSoundCategory, updateReason,
                                    stackCountChange)
-  -- Log out everything.
-  d("Inventory Update - Bag: " ..
-    tostring(bagId) ..
-    ", Slot: " ..
-    tostring(slotIndex) ..
-    ", NewItem: " ..
-    tostring(isNewItem) ..
-    ", SoundCategory: " ..
-    tostring(itemSoundCategory) ..
-    ", Reason: " .. tostring(updateReason) .. ", StackChange: " .. tostring(stackCountChange))
-
-  if bagId ~= BAG_BACKPACK and bagId ~= BAG_SUBSCRIBER_BANK then
+  if bagId ~= BAG_BACKPACK and bagId ~= BAG_SUBSCRIBER_BANK and bagId ~= BAG_VIRTUAL then
     return
   end
 
@@ -240,20 +288,10 @@ function SFT.OnInventorySlotUpdate(eventCode, bagId, slotIndex, isNewItem, itemS
   end
 
   if not itemLink or itemLink == "" then
-    d("No item link found for Bag: " ..
-      tostring(bagId) ..
-      ", Slot: " ..
-      tostring(slotIndex) .. "itemLink: " .. tostring(itemLink) .. ", StackChange: " .. tostring(stackCountChange))
     return
   end
 
   local isFish = GetItemLinkItemType(itemLink) == ITEMTYPE_FISH
-
-  local itemId = GetItemLinkItemId(itemLink)
-  if itemId == SFT.constants.perfectRoeItemId and stackCountChange > 0 then
-    SFT.OnPerfectRoeFound(stackCountChange)
-    return
-  end
 
   if isFish and stackCountChange < 0 then
     SFT.RegisterFilletCount(-stackCountChange)
