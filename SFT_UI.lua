@@ -82,6 +82,15 @@ function SFT.InitializeBackground()
     separatorLine:SetAnchor(BOTTOM, SamisFishTrackerControl, BOTTOM, 0, -26)
     SFT.windowSeparatorLine = separatorLine
   end
+
+  if not SFT.filletWindowBackground then
+    local filletBg = WINDOW_MANAGER:CreateControl(nil, SamisFilletTrackerControl, CT_TEXTURE)
+    filletBg:SetDimensions(constants.filletWindowWidth, constants.filletWindowHeight)
+    filletBg:SetAnchor(TOPLEFT, SamisFilletTrackerControl, TOPLEFT, 0, 0)
+    filletBg:SetDrawLevel(-1)
+    filletBg:SetColor(0, 0, 0, 0.8)
+    SFT.filletWindowBackground = filletBg
+  end
 end
 
 function SFT.UpdateAverageRateLabel(forceUpdate)
@@ -98,6 +107,19 @@ function SFT.UpdateAverageRateLabel(forceUpdate)
   end
 
   SamisFishTrackerControlLabelAverage:SetText(formatAverageLabel())
+end
+
+function SFT.UpdatePerfectRoeInventoryLabel()
+  local bagCount = SFT.total_roe_bag or 0
+  local bankCount = SFT.total_roe_bank or 0
+  SamisFilletTrackerControlLabelPerfectRoe:SetText(string.format("Perfect Roe - Bag: %d Bank: %d", bagCount, bankCount))
+end
+
+function SFT.UpdateFilletStatsLabel()
+  local sinceRoe = SFT.filletsSinceRoe or 0
+  local lastFillets = SFT.lastRoeFillets or 0
+  local lastPercent = SFT.lastRoeRatePercent or 0
+  SamisFilletTrackerControlLabelFilletStats:SetText(string.format("Fillets since Roe: %d (Last: %d, %.2f%%)", sinceRoe, lastFillets, lastPercent))
 end
 
 function SFT.ResizeWindow()
@@ -131,6 +153,8 @@ end
 function SFT.RefreshStorageLabels()
   SamisFishTrackerControlLabelBagFish:SetText(formatIconLabel(constants.icons.bag, SFT.total_bag))
   SamisFishTrackerControlLabelBagRoe:SetText(formatRoeLabel(SFT.total_bag))
+  SFT.UpdatePerfectRoeInventoryLabel()
+  SFT.UpdateFilletStatsLabel()
   SFT.UpdateAverageRateLabel()
   SFT.UpdateBankDisplay()
 end

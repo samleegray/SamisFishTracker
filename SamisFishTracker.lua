@@ -1,6 +1,27 @@
 local SFT = SamisFishTrackerAddon
 local visibility = SFT.constants.visibility
 local averageRateUpdateName = SFT.name .. "AverageRate"
+local fishItemLinks = {}
+local SamisFishTrackerControl = SamisFishTrackerControl or nil
+local SamisFilletTrackerControl = SamisFilletTrackerControl or nil
+
+local function iterateThroughEntireBag()
+  local bagId = BAG_BACKPACK
+  local slotIndex = ZO_GetNextBagSlotIndex(bagId, 0)
+  local newLinks = {}
+
+  while slotIndex do
+    slotIndex = ZO_GetNextBagSlotIndex(bagId, slotIndex)
+
+    local itemLink = GetItemLink(bagId, slotIndex, 1)
+    if itemLink and GetItemLinkItemType(itemLink) == ITEMTYPE_FISH then
+      newLinks[slotIndex] = itemLink
+      d("Found a fishy item in bag slot " .. tostring(slotIndex) .. ": " .. tostring(itemLink))
+    end
+  end
+
+  fishItemLinks = newLinks
+end
 
 function SFT.ConfigureAverageRateAutoUpdate()
   local intervalSeconds = tonumber(SFT.savedVariables.averageRateUpdateIntervalSeconds) or 1
@@ -27,7 +48,20 @@ function SFT.RestorePosition()
   end
 
   SamisFishTrackerControl:ClearAnchors()
+
   SamisFishTrackerControl:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, left, top)
+end
+
+function SFT.RestoreFilletPosition()
+  local left = SFT.savedVariables.filletLeft
+  local top = SFT.savedVariables.filletTop
+
+  if left == nil or top == nil then
+    return
+  end
+
+  SamisFilletTrackerControl:ClearAnchors()
+  SamisFilletTrackerControl:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, left, top)
 end
 
 function SFT.ApplyVisibilitySetting()
@@ -44,7 +78,7 @@ function SFT.OnInventoryUpdate(eventCode, itemSoundCategory)
   -- Sync session count to actual bag count so it reflects current inventory
   SFT.UpdateFishCount(SFT.total_bag)
   SFT.savedVariables.amount = SFT.total_bag
-  
+
   -- Refresh again after 2 seconds to account for any inventory state settling delay
   zo_callLater(function()
     SFT.RefreshTotals()
@@ -56,12 +90,20 @@ end
 
 function SFT.Initialize()
   SFT.fishamount = 0
+  SFT.filletCountTotal = 0
+  SFT.filletsSinceRoe = 0
+  SFT.lastRoeFillets = 0
+  SFT.lastRoeRatePercent = 0
+  SFT.total_roe_found = 0
   SFT.sessionStartTime = os.time()
   SFT.averageRateCatchHistory = {}
 
   EVENT_MANAGER:RegisterForEvent(SFT.name, EVENT_LOOT_RECEIVED, SFT.LootReceivedEvent)
   EVENT_MANAGER:RegisterForEvent(SFT.name, EVENT_CLOSE_BANK, SFT.UpdateTotal)
   EVENT_MANAGER:RegisterForEvent(SFT.name, EVENT_INVENTORY_ITEM_USED, SFT.OnInventoryUpdate)
+  -- EVENT_MANAGER:RegisterForEvent(SFT.name, EVENT_INVENTORY_ITEMS_AUTO_TRANSFERRED_TO_CRAFT_BAG, SFT.OnItemsTransferredToCraftBag)
+  EVENT_MANAGER:RegisterForEvent(SFT.name, EVENT_INVENTORY_SINGLE_SLOT_UPDATE, SFT.OnInventorySlotUpdate)
+  EVENT_MANAGER:AddFilterForEvent(SFT.name, EVENT_INVENTORY_SINGLE_SLOT_UPDATE, REGISTER_FILTER_BAG_ID, BAG_BACKPACK)
 
   SFT.savedVariables = ZO_SavedVars:NewAccountWide("SamisFishTrackerSavedVariables", 1, nil, {
     amount = 0,
@@ -79,6 +121,12 @@ function SFT.Initialize()
     SFT.savedVariables.top = SamisFishTrackerControl:GetTop()
   end)
 
+  SFT.RestoreFilletPosition()
+  SamisFilletTrackerControl:SetHandler("OnMoveStop", function()
+    SFT.savedVariables.filletLeft = SamisFilletTrackerControl:GetLeft()
+    SFT.savedVariables.filletTop = SamisFilletTrackerControl:GetTop()
+  end)
+
   SFT.InitializeBackground()
   SFT.settingsInit()
   SFT.RefreshTotals()
@@ -88,6 +136,7 @@ function SFT.Initialize()
   SFT.RestorePosition()
   SFT.RegisterSlashCommands()
   SFT.ConfigureAverageRateAutoUpdate()
+  iterateThroughEntireBag()
 end
 
 function SFT.LootReceivedEvent(_, _, itemLink, quantity, _, _, self)
@@ -104,6 +153,95 @@ function SFT.LootReceivedEvent(_, _, itemLink, quantity, _, _, self)
   SFT.UpdateFishAmount(amount)
   SFT.savedVariables.amount = SFT.fishamount
   SFT.UpdateAverageRateLabel(true)
+end
+
+function SFT.RegisterFilletCount(amount)
+  local increment = amount or 0
+  if increment <= 0 then
+    return
+  end
+
+  SFT.filletCountTotal = (SFT.filletCountTotal or 0) + increment
+  SFT.filletsSinceRoe = (SFT.filletsSinceRoe or 0) + increment
+  if SFT.UpdateFilletStatsLabel then
+    SFT.UpdateFilletStatsLabel()
+  end
+end
+
+function SFT.OnPerfectRoeFound(amount)
+  local increment = amount or 0
+  if increment <= 0 then
+    return
+  end
+
+  SFT.total_roe_found = (SFT.total_roe_found or 0) + increment
+  local filletsSinceRoe = SFT.filletsSinceRoe or 0
+  if filletsSinceRoe > 0 then
+    SFT.lastRoeFillets = filletsSinceRoe
+    SFT.lastRoeRatePercent = (1 / filletsSinceRoe) * 100
+  else
+    SFT.lastRoeFillets = 0
+    SFT.lastRoeRatePercent = 0
+  end
+
+  SFT.filletsSinceRoe = 0
+  SFT.RefreshTotals()
+  SFT.RefreshStorageLabels()
+  if SFT.UpdateFilletStatsLabel then
+    SFT.UpdateFilletStatsLabel()
+  end
+end
+
+local function handleInventoryAddition()
+  iterateThroughEntireBag()
+end
+
+function SFT.OnInventorySlotUpdate(eventCode, bagId, slotIndex, isNewItem, itemSoundCategory, updateReason,
+                                   stackCountChange)
+  -- Log out everything.
+  d("Inventory Update - Bag: " ..
+    tostring(bagId) ..
+    ", Slot: " ..
+    tostring(slotIndex) ..
+    ", NewItem: " ..
+    tostring(isNewItem) ..
+    ", SoundCategory: " ..
+    tostring(itemSoundCategory) ..
+    ", Reason: " .. tostring(updateReason) .. ", StackChange: " .. tostring(stackCountChange))
+
+  if bagId ~= BAG_BACKPACK then
+    return
+  end
+
+  if stackCountChange > 0 then
+    handleInventoryAddition()
+  end
+
+  if not stackCountChange or stackCountChange == 0 then
+    return
+  end
+
+  local itemLink = GetItemLink(bagId, slotIndex) or fishItemLinks[slotIndex]
+  if not itemLink or itemLink == "" then
+    d("No item link found for Bag: " .. tostring(bagId) .. ", Slot: " .. tostring(slotIndex))
+    return
+  end
+
+  local isFish = GetItemLinkItemType(itemLink) == ITEMTYPE_FISH
+
+  local itemId = GetItemLinkItemId(itemLink)
+  if itemId == SFT.constants.perfectRoeItemId and stackCountChange > 0 then
+    SFT.OnPerfectRoeFound(stackCountChange)
+    return
+  end
+
+
+
+  if isFish and stackCountChange < 0 then
+    SFT.RegisterFilletCount(-stackCountChange)
+  end
+
+  fishItemLinks[slotIndex] = itemLink
 end
 
 function SFT.OnAddOnLoaded(_, addonName)
