@@ -37,7 +37,8 @@ function SFT.settingsInit()
   local optionsData = {}
   optionsData[#optionsData + 1] = {
     type = "description",
-    text = "Tracks your fish and estimated Perfect Roe across bag and bank. Slash commands: /sft, /sft show, /sft hide, /sft auto, /sft reset.",
+    text =
+    "Tracks your fish and estimated Perfect Roe across bag and bank. Slash commands: /sft, /sft show, /sft hide, /sft auto, /sft reset.",
   }
 
   optionsData[#optionsData + 1] = {

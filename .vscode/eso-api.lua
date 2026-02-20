@@ -4,6 +4,8 @@
 -- LIBGROUPCOMBATSTATS LIBRARY
 -----------------------------------------------------------
 
+LibAddonMenu2 = {}
+
 ---LibGroupCombatStats - Tracks and reports group combat statistics
 ---@class LibGroupCombatStats
 ---@field EVENT_GROUP_DPS_UPDATE string Event fired when group member DPS updates
@@ -29,3 +31,16 @@ function LibGroupCombatStatsHandle:RegisterForEvent(event, callback) end
 ---@param event string The event constant
 ---@param callback function The callback function to remove
 function LibGroupCombatStatsHandle:UnregisterForEvent(event, callback) end
+
+RETICLE.interact = {}
+
+SamisFishTrackerControlLabelBagFish = {}
+SamisFishTrackerControlLabelBankFish = {}
+SamisFishTrackerControlLabelBagRoe = {}
+SamisFishTrackerControlLabelBankRoe = {}
+SamisFishTrackerControlLabelFish = {}
+SamisFishTrackerControlLabelRoe = {}
+SamisFilletTrackerControlLabelPerfectRoe = {}
+SamisFilletTrackerControlLabelFilletStats = {}
+SamisFilletTrackerControlLabelAverageRate = {}
+SamisFishTrackerControlLabelAverage = {}

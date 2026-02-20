@@ -9,7 +9,8 @@
     "diagnostics.disable": [
         "assign-type-mismatch",
         "inject-field",
-        "param-type-mismatch"
+        "param-type-mismatch",
+        "missing-parameter"
     ],
     "workspace.preloadFileSize": 700,
     "diagnostics.neededFileStatus": {
@@ -31,6 +32,12 @@
         "zo_callLater",
         "RegisterForEvent",
         "SamisFishTrackerControl",
-        "LibSlashCommander"
-    ]
+        "LibSlashCommander",
+        "SamisFilletTrackerControl"
+    ],
+    "Lua.format.defaultConfig": {
+        "indent_style": "space",
+        "indent_size": "2"
+    },
+    "editor.tabSize": 2
 }

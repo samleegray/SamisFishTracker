@@ -13,10 +13,10 @@ end
 function SFT.GetBagFishCount()
   local total = 0
   local bagIdPack = BAG_BACKPACK
-  local slotBagPack = ZO_GetNextBagSlotIndex(bagIdPack)
+  local slotBagPack = ZO_GetNextBagSlotIndex(bagIdPack, nil)
 
   while slotBagPack do
-    local itemLink = GetItemLink(bagIdPack, slotBagPack)
+    local itemLink = GetItemLink(bagIdPack, slotBagPack, nil)
     local inventoryCount = GetItemLinkStacks(itemLink)
 
     if SFT.IsTrackableFish(itemLink) then
@@ -49,10 +49,10 @@ end
 function SFT.GetBagPerfectRoeCount()
   local total = 0
   local bagIdPack = BAG_BACKPACK
-  local slotBagPack = ZO_GetNextBagSlotIndex(bagIdPack)
+  local slotBagPack = ZO_GetNextBagSlotIndex(bagIdPack, nil)
 
   while slotBagPack do
-    local itemLink = GetItemLink(bagIdPack, slotBagPack)
+    local itemLink = GetItemLink(bagIdPack, slotBagPack, nil)
     if GetItemLinkItemId(itemLink) == perfectRoeItemId then
       total = total + GetItemLinkStacks(itemLink)
     end
