@@ -172,6 +172,23 @@ function SFT.settingsInit()
     end,
     warning = "This only resets the tracked count, not fish in your inventory.",
   }
+  optionsData[#optionsData + 1] = {
+    type = "button",
+    name = "Reset Roe/Fillet Tracking",
+    tooltip = "Reset fillets since roe, last roe rate, and roe found counters",
+    func = function()
+      SFT.ResetRoeFilletTracking()
+    end,
+    warning = "This only resets roe/fillet tracking data.",
+  }
+  optionsData[#optionsData + 1] = {
+    type = "button",
+    name = "Use Last Roe % as Roe Rate",
+    tooltip = "Set Roe Rate to the last observed roe percentage",
+    func = function()
+      SFT.ApplyLastRoeRateToRoeRateSetting()
+    end,
+  }
 
   LAM2:RegisterOptionControls("SamisFishTrackerOptions", optionsData)
 end
