@@ -5,6 +5,7 @@ local SFT = SamisFishTrackerAddon
 SFT.name = "SamisFishTracker"
 SFT.version = "1.0.1"
 SFT.author = "samihaize"
+
 SFT.fishamount = 0
 SFT.total_bag = 0
 SFT.total_bank = 0

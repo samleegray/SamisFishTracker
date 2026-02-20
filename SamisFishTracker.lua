@@ -1,9 +1,7 @@
 local SFT = SamisFishTrackerAddon
 local visibility = SFT.constants.visibility
 local averageRateUpdateName = SFT.name .. "AverageRate"
-local fishItemLinks = {}
-local SamisFishTrackerControl = SamisFishTrackerControl or nil
-local SamisFilletTrackerControl = SamisFilletTrackerControl or nil
+
 
 local function iterateThroughEntireBag()
   local bagId = BAG_BACKPACK
@@ -20,7 +18,7 @@ local function iterateThroughEntireBag()
     end
   end
 
-  fishItemLinks = newLinks
+  SFT.utils.cacheFish(newLinks)
 end
 
 function SFT.ConfigureAverageRateAutoUpdate()
@@ -103,7 +101,7 @@ function SFT.Initialize()
   EVENT_MANAGER:RegisterForEvent(SFT.name, EVENT_INVENTORY_ITEM_USED, SFT.OnInventoryUpdate)
   -- EVENT_MANAGER:RegisterForEvent(SFT.name, EVENT_INVENTORY_ITEMS_AUTO_TRANSFERRED_TO_CRAFT_BAG, SFT.OnItemsTransferredToCraftBag)
   EVENT_MANAGER:RegisterForEvent(SFT.name, EVENT_INVENTORY_SINGLE_SLOT_UPDATE, SFT.OnInventorySlotUpdate)
-  EVENT_MANAGER:AddFilterForEvent(SFT.name, EVENT_INVENTORY_SINGLE_SLOT_UPDATE, REGISTER_FILTER_BAG_ID, BAG_BACKPACK)
+  -- EVENT_MANAGER:AddFilterForEvent(SFT.name, EVENT_INVENTORY_SINGLE_SLOT_UPDATE, REGISTER_FILTER_BAG_ID, BAG_BACKPACK)
 
   SFT.savedVariables = ZO_SavedVars:NewAccountWide("SamisFishTrackerSavedVariables", 1, nil, {
     amount = 0,
@@ -192,8 +190,22 @@ function SFT.OnPerfectRoeFound(amount)
   end
 end
 
-local function handleInventoryAddition()
-  iterateThroughEntireBag()
+local function handleInventoryAddition(bagId, slotIndex, stackCountChange)
+  if bagId == BAG_BACKPACK and stackCountChange > 0 then
+    iterateThroughEntireBag()
+  end
+
+  local itemLink = GetItemLink(bagId, slotIndex) or SFT.utils.getCachedFishItemLink(slotIndex)
+  if not itemLink or itemLink == "" then
+    d("No item link found for Bag ADDITION: " .. tostring(bagId) .. ", Slot: " .. tostring(slotIndex))
+    return
+  end
+
+  local itemId = GetItemLinkItemId(itemLink)
+  if itemId == SFT.constants.perfectRoeItemId and stackCountChange > 0 then
+    SFT.OnPerfectRoeFound(stackCountChange)
+    return
+  end
 end
 
 function SFT.OnInventorySlotUpdate(eventCode, bagId, slotIndex, isNewItem, itemSoundCategory, updateReason,
@@ -209,21 +221,29 @@ function SFT.OnInventorySlotUpdate(eventCode, bagId, slotIndex, isNewItem, itemS
     tostring(itemSoundCategory) ..
     ", Reason: " .. tostring(updateReason) .. ", StackChange: " .. tostring(stackCountChange))
 
-  if bagId ~= BAG_BACKPACK then
+  if bagId ~= BAG_BACKPACK and bagId ~= BAG_SUBSCRIBER_BANK then
     return
   end
 
   if stackCountChange > 0 then
-    handleInventoryAddition()
+    handleInventoryAddition(bagId, slotIndex, stackCountChange)
+    return
   end
 
   if not stackCountChange or stackCountChange == 0 then
     return
   end
 
-  local itemLink = GetItemLink(bagId, slotIndex) or fishItemLinks[slotIndex]
+  local itemLink = GetItemLink(bagId, slotIndex)
+  if (not itemLink or itemLink == "") and SFT.utils.getCachedFishItemLink(slotIndex) ~= nil then
+    itemLink = SFT.utils.getCachedFishItemLink(slotIndex)
+  end
+
   if not itemLink or itemLink == "" then
-    d("No item link found for Bag: " .. tostring(bagId) .. ", Slot: " .. tostring(slotIndex))
+    d("No item link found for Bag: " ..
+      tostring(bagId) ..
+      ", Slot: " ..
+      tostring(slotIndex) .. "itemLink: " .. tostring(itemLink) .. ", StackChange: " .. tostring(stackCountChange))
     return
   end
 
@@ -235,13 +255,11 @@ function SFT.OnInventorySlotUpdate(eventCode, bagId, slotIndex, isNewItem, itemS
     return
   end
 
-
-
   if isFish and stackCountChange < 0 then
     SFT.RegisterFilletCount(-stackCountChange)
   end
 
-  fishItemLinks[slotIndex] = itemLink
+  SFT.utils.cacheItemLink(bagId, slotIndex, itemLink)
 end
 
 function SFT.OnAddOnLoaded(_, addonName)

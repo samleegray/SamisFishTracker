@@ -39,7 +39,7 @@ end
 
 local function formatAverageLabel()
   local useRollingWindow = not SFT.savedVariables or SFT.savedVariables.averageRateUseRollingWindow ~= false
-  
+
   if useRollingWindow then
     local windowSeconds = (SFT.savedVariables and SFT.savedVariables.averageRateRollingWindowSeconds) or 300
     windowSeconds = math.max(1, math.min(3600, windowSeconds))
@@ -119,7 +119,8 @@ function SFT.UpdateFilletStatsLabel()
   local sinceRoe = SFT.filletsSinceRoe or 0
   local lastFillets = SFT.lastRoeFillets or 0
   local lastPercent = SFT.lastRoeRatePercent or 0
-  SamisFilletTrackerControlLabelFilletStats:SetText(string.format("Fillets since Roe: %d (Last: %d, %.2f%%)", sinceRoe, lastFillets, lastPercent))
+  SamisFilletTrackerControlLabelFilletStats:SetText(string.format("Fillets since Roe: %d (Last: %d, %.2f%%)", sinceRoe,
+    lastFillets, lastPercent))
 end
 
 function SFT.ResizeWindow()
@@ -129,7 +130,7 @@ function SFT.ResizeWindow()
   if not isAverageRateEnabled() then
     newHeight = newHeight - 15
   end
-  
+
   SamisFishTrackerControl:SetHeight(newHeight)
   if SFT.windowBackground then
     SFT.windowBackground:SetDimensions(200, newHeight)
@@ -146,7 +147,7 @@ function SFT.UpdateBankDisplay()
     SamisFishTrackerControlLabelBankFish:SetText(formatIconLabel(constants.icons.bank, SFT.total_bank))
     SamisFishTrackerControlLabelBankRoe:SetText(formatRoeLabel(SFT.total_bank))
   end
-  
+
   SFT.ResizeWindow()
 end
 

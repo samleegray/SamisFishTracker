@@ -10,6 +10,7 @@
 ## OptionalDependsOn: LibSlashCommander>=45
 
 SFT_Core.lua
+SFT_Utils.lua
 SFT_Inventory.lua
 SFT_UI.lua
 SFT_Commands.lua
