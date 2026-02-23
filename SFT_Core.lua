@@ -3,7 +3,7 @@ SamisFishTrackerAddon = SamisFishTrackerAddon or {}
 local SFT = SamisFishTrackerAddon
 
 SFT.name = "SamisFishTracker"
-SFT.version = "1.0.1"
+SFT.version = "1.0.2"
 SFT.author = "samihaize"
 
 SFT.fishamount = 0
