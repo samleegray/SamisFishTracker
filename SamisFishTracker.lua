@@ -104,6 +104,7 @@ function SFT.Initialize()
     amount = 0,
     visibility = visibility.HIDE,
     roeRate = SFT.constants.roeRate,
+    enableRoeTracking = true,
     filletCountTotal = 0,
     filletsSinceRoe = 0,
     lastRoeFillets = 0,
@@ -162,6 +163,10 @@ function SFT.LootReceivedEvent(_, _, itemLink, quantity, _, _, self)
 end
 
 function SFT.RegisterFilletCount(amount)
+  if SFT.IsRoeTrackingEnabled and not SFT.IsRoeTrackingEnabled() then
+    return
+  end
+
   local increment = amount or 0
   if increment <= 0 then
     return
@@ -185,6 +190,10 @@ function SFT.RegisterFilletCount(amount)
 end
 
 function SFT.OnPerfectRoeFound(amount)
+  if SFT.IsRoeTrackingEnabled and not SFT.IsRoeTrackingEnabled() then
+    return
+  end
+
   local increment = amount or 0
   if increment <= 0 then
     return
@@ -218,6 +227,10 @@ function SFT.OnPerfectRoeFound(amount)
 end
 
 function SFT.ResetRoeFilletTracking()
+  if SFT.IsRoeTrackingEnabled and not SFT.IsRoeTrackingEnabled() then
+    return
+  end
+
   SFT.filletCountTotal = 0
   SFT.filletsSinceRoe = 0
   SFT.lastRoeFillets = 0
@@ -235,6 +248,10 @@ function SFT.ResetRoeFilletTracking()
 end
 
 function SFT.ApplyLastRoeRateToRoeRateSetting()
+  if SFT.IsRoeTrackingEnabled and not SFT.IsRoeTrackingEnabled() then
+    return
+  end
+
   local percentValue = tonumber(SFT.lastRoeRatePercent) or 0
   local rateValue = percentValue / 100
   local clampedRate = math.max(0.0001, math.min(0.1, rateValue))

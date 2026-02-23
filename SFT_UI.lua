@@ -65,6 +65,10 @@ local function isAverageRateEnabled()
   return not SFT.savedVariables or SFT.savedVariables.showAverageRate ~= false
 end
 
+function SFT.IsRoeTrackingEnabled()
+  return not SFT.savedVariables or SFT.savedVariables.enableRoeTracking ~= false
+end
+
 local function resizeFilletWindowToFitStats()
   local control = SamisFilletTrackerControl
   local label = SamisFilletTrackerControlLabelFilletStats
@@ -85,6 +89,19 @@ local function resizeFilletWindowToFitStats()
 
   if SFT.filletWindowBackground then
     SFT.filletWindowBackground:SetDimensions(desiredWidth, constants.filletWindowHeight)
+  end
+end
+
+function SFT.ApplyRoeTrackingVisibility()
+  local enabled = SFT.IsRoeTrackingEnabled()
+
+  SamisFishTrackerControlLabelRoe:SetHidden(not enabled)
+  SamisFishTrackerControlLabelBagRoe:SetHidden(not enabled)
+  SamisFishTrackerControlLabelBankRoe:SetHidden(not enabled)
+  SamisFilletTrackerControl:SetHidden(not enabled)
+
+  if enabled then
+    resizeFilletWindowToFitStats()
   end
 end
 
@@ -133,6 +150,10 @@ function SFT.UpdateAverageRateLabel(forceUpdate)
 end
 
 function SFT.UpdateFilletStatsLabel()
+  if not SFT.IsRoeTrackingEnabled() then
+    return
+  end
+
   local sinceRoe = SFT.filletsSinceRoe or 0
   local lastFillets = SFT.lastRoeFillets or 0
   local observedPercent = SFT.lastRoeRatePercent or 0
@@ -157,23 +178,34 @@ function SFT.ResizeWindow()
 end
 
 function SFT.UpdateBankDisplay()
+  local roeEnabled = SFT.IsRoeTrackingEnabled()
+
   if SFT.total_bank <= 0 then
     SamisFishTrackerControlLabelBankFish:SetHidden(true)
     SamisFishTrackerControlLabelBankRoe:SetHidden(true)
   else
     SamisFishTrackerControlLabelBankFish:SetHidden(false)
-    SamisFishTrackerControlLabelBankRoe:SetHidden(false)
+    SamisFishTrackerControlLabelBankRoe:SetHidden(not roeEnabled)
     SamisFishTrackerControlLabelBankFish:SetText(formatIconLabel(constants.icons.bank, SFT.total_bank))
-    SamisFishTrackerControlLabelBankRoe:SetText(formatRoeLabel(SFT.total_bank))
+    if roeEnabled then
+      SamisFishTrackerControlLabelBankRoe:SetText(formatRoeLabel(SFT.total_bank))
+    end
   end
 
   SFT.ResizeWindow()
 end
 
 function SFT.RefreshStorageLabels()
+  local roeEnabled = SFT.IsRoeTrackingEnabled()
+
+  SFT.ApplyRoeTrackingVisibility()
   SamisFishTrackerControlLabelBagFish:SetText(formatIconLabel(constants.icons.bag, SFT.total_bag))
-  SamisFishTrackerControlLabelBagRoe:SetText(formatRoeLabel(SFT.total_bag))
-  SFT.UpdateFilletStatsLabel()
+  if roeEnabled then
+    SamisFishTrackerControlLabelBagRoe:SetText(formatRoeLabel(SFT.total_bag))
+  end
+  if roeEnabled then
+    SFT.UpdateFilletStatsLabel()
+  end
   SFT.UpdateAverageRateLabel()
   SFT.UpdateBankDisplay()
 end
@@ -181,7 +213,9 @@ end
 function SFT.UpdateFishCount(count)
   SFT.fishamount = count or 0
   SamisFishTrackerControlLabelFish:SetText(formatIconLabel(constants.icons.fish, SFT.fishamount))
-  SamisFishTrackerControlLabelRoe:SetText(formatRoeLabel(SFT.fishamount))
+  if SFT.IsRoeTrackingEnabled() then
+    SamisFishTrackerControlLabelRoe:SetText(formatRoeLabel(SFT.fishamount))
+  end
   SFT.UpdateAverageRateLabel()
 end
 

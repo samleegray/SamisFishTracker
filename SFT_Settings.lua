@@ -142,6 +142,22 @@ function SFT.settingsInit()
     name = "Roe Estimation",
   }
   optionsData[#optionsData + 1] = {
+    type = "checkbox",
+    name = "Enable Roe Tracking",
+    tooltip = "Show roe estimation and fillet stats tracking",
+    getFunc = function()
+      return SFT.savedVariables.enableRoeTracking ~= false
+    end,
+    setFunc = function(value)
+      SFT.savedVariables.enableRoeTracking = value
+      if SFT.ApplyRoeTrackingVisibility then
+        SFT.ApplyRoeTrackingVisibility()
+      end
+      SFT.RefreshStorageLabels()
+    end,
+    default = true,
+  }
+  optionsData[#optionsData + 1] = {
     type = "slider",
     name = "Roe Rate",
     tooltip = "Expected Perfect Roe chance per fish",
@@ -157,6 +173,9 @@ function SFT.settingsInit()
       SFT.RefreshStorageLabels()
     end,
     default = SFT.constants.roeRate,
+    disabled = function()
+      return SFT.savedVariables.enableRoeTracking == false
+    end,
   }
 
   optionsData[#optionsData + 1] = {
@@ -180,6 +199,9 @@ function SFT.settingsInit()
       SFT.ResetRoeFilletTracking()
     end,
     warning = "This only resets roe/fillet tracking data.",
+    disabled = function()
+      return SFT.savedVariables.enableRoeTracking == false
+    end,
   }
   optionsData[#optionsData + 1] = {
     type = "button",
@@ -187,6 +209,9 @@ function SFT.settingsInit()
     tooltip = "Set Roe Rate to the last observed roe percentage",
     func = function()
       SFT.ApplyLastRoeRateToRoeRateSetting()
+    end,
+    disabled = function()
+      return SFT.savedVariables.enableRoeTracking == false
     end,
   }
 
