@@ -65,6 +65,29 @@ local function isAverageRateEnabled()
   return not SFT.savedVariables or SFT.savedVariables.showAverageRate ~= false
 end
 
+local function resizeFilletWindowToFitStats()
+  local control = SamisFilletTrackerControl
+  local label = SamisFilletTrackerControlLabelFilletStats
+
+  if not control or not label then
+    return
+  end
+
+  local horizontalPadding = 20
+  local minWidth = constants.filletWindowWidth or 300
+  label:SetWrapMode(TEXT_WRAP_MODE_TRUNCATE)
+  label:SetWidth(1000)
+  local textWidth = select(1, label:GetTextDimensions()) or 0
+  local desiredWidth = math.max(minWidth, math.ceil(textWidth) + horizontalPadding)
+
+  control:SetWidth(desiredWidth)
+  label:SetWidth(desiredWidth - horizontalPadding)
+
+  if SFT.filletWindowBackground then
+    SFT.filletWindowBackground:SetDimensions(desiredWidth, constants.filletWindowHeight)
+  end
+end
+
 function SFT.InitializeBackground()
   if not SFT.windowBackground then
     local background = WINDOW_MANAGER:CreateControl(nil, SamisFishTrackerControl, CT_TEXTURE)
@@ -109,12 +132,6 @@ function SFT.UpdateAverageRateLabel(forceUpdate)
   SamisFishTrackerControlLabelAverage:SetText(formatAverageLabel())
 end
 
-function SFT.UpdatePerfectRoeInventoryLabel()
-  local bagCount = SFT.total_roe_bag or 0
-  local bankCount = SFT.total_roe_bank or 0
-  SamisFilletTrackerControlLabelPerfectRoe:SetText(string.format("Perfect Roe - Bag: %d Bank: %d", bagCount, bankCount))
-end
-
 function SFT.UpdateFilletStatsLabel()
   local sinceRoe = SFT.filletsSinceRoe or 0
   local lastFillets = SFT.lastRoeFillets or 0
@@ -122,6 +139,7 @@ function SFT.UpdateFilletStatsLabel()
   SamisFilletTrackerControlLabelFilletStats:SetText(string.format("Fillets since Roe: %d (Last: %d, Obs: %.2f%%)",
     sinceRoe,
     lastFillets, observedPercent))
+  resizeFilletWindowToFitStats()
 end
 
 function SFT.ResizeWindow()
@@ -155,7 +173,6 @@ end
 function SFT.RefreshStorageLabels()
   SamisFishTrackerControlLabelBagFish:SetText(formatIconLabel(constants.icons.bag, SFT.total_bag))
   SamisFishTrackerControlLabelBagRoe:SetText(formatRoeLabel(SFT.total_bag))
-  SFT.UpdatePerfectRoeInventoryLabel()
   SFT.UpdateFilletStatsLabel()
   SFT.UpdateAverageRateLabel()
   SFT.UpdateBankDisplay()
