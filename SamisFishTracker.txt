@@ -1,7 +1,7 @@
 ## Title: SamisFishTracker
-## Version: 1.0.1
+## Version: 1.0.2
 ## APIVersion: 101048
-## AddOnVersion: 2
+## AddOnVersion: 3
 ## Author: |cf939dasamihaize|r
 ## Description: Keeps track of your fishies.
 ## IsLibrary: false
