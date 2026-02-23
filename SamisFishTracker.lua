@@ -98,9 +98,7 @@ function SFT.Initialize()
   EVENT_MANAGER:RegisterForEvent(SFT.name, EVENT_LOOT_RECEIVED, SFT.LootReceivedEvent)
   EVENT_MANAGER:RegisterForEvent(SFT.name, EVENT_CLOSE_BANK, SFT.UpdateTotal)
   EVENT_MANAGER:RegisterForEvent(SFT.name, EVENT_INVENTORY_ITEM_USED, SFT.OnInventoryUpdate)
-  -- EVENT_MANAGER:RegisterForEvent(SFT.name, EVENT_INVENTORY_ITEMS_AUTO_TRANSFERRED_TO_CRAFT_BAG, SFT.OnItemsTransferredToCraftBag)
   EVENT_MANAGER:RegisterForEvent(SFT.name, EVENT_INVENTORY_SINGLE_SLOT_UPDATE, SFT.OnInventorySlotUpdate)
-  -- EVENT_MANAGER:AddFilterForEvent(SFT.name, EVENT_INVENTORY_SINGLE_SLOT_UPDATE, REGISTER_FILTER_BAG_ID, BAG_BACKPACK)
 
   SFT.savedVariables = ZO_SavedVars:NewAccountWide("SamisFishTrackerSavedVariables", 1, nil, {
     amount = 0,
