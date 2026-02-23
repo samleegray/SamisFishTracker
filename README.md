@@ -1,16 +1,17 @@
 # SamisFishTracker
 
-An Elder Scrolls Online addon that tracks your fish inventory and estimates Perfect Roe yield.
+An Elder Scrolls Online addon that tracks your fish inventory with optional Perfect Roe estimation and fillet stats.
 
 ## Features
 
 - **Fish Counter** - Tracks the number of fish you catch during your session
 - **Inventory Display** - Shows fish count in your bag and bank
-- **Perfect Roe Estimation** - Calculates expected Perfect Roe using a configurable fillet rate
+- **Perfect Roe Estimation** - Calculates expected Perfect Roe using a configurable fillet rate (optional)
+- **Fillet Stats** - Tracks fillets since last roe and observed roe rate
 - **Average Fish Per Hour** - Shows live fish/hour for your current session
 - **Auto-Hide Mode** - Optionally show the tracker only when looking at fishing holes
 - **Movable Window** - Drag to reposition; position is saved between sessions
-- **Settings Panel** - Configure visibility mode, roe rate, Average Fish Per Hour toggle, and actions in Settings > Addons > Sami's Fish Tracker
+- **Settings Panel** - Configure visibility mode, roe tracking, roe rate, Average Fish Per Hour toggle, and actions in Settings > Addons > Sami's Fish Tracker
 - **Account-Wide Saved Variables** - Your settings persist across characters
 
 ## Settings
@@ -20,6 +21,7 @@ An Elder Scrolls Online addon that tracks your fish inventory and estimates Perf
 - **Show Average Fish Per Hour** - Toggle the Avg/hr line on or off (default: on)
 
 ### Roe Estimation
+- **Enable Roe Tracking** - Toggle roe estimation and fillet stats UI (default: on)
 - **Roe Rate Slider** - Adjustable from `0.0001` to `0.1` (default: 0.008)
 
 ### Average Fish Per Hour
@@ -30,6 +32,8 @@ An Elder Scrolls Online addon that tracks your fish inventory and estimates Perf
 
 ### Actions
 - **Reset Session Fish Count** - Resets fish count and clears Avg/hr history
+- **Reset Roe/Fillet Tracking** - Resets fillet and roe tracking counters
+- **Use Last Roe % as Roe Rate** - Sets Roe Rate to the last observed roe percentage
 
 ## Commands
 

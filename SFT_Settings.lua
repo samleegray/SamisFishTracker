@@ -37,7 +37,8 @@ function SFT.settingsInit()
   local optionsData = {}
   optionsData[#optionsData + 1] = {
     type = "description",
-    text = "Tracks your fish and estimated Perfect Roe across bag and bank. Slash commands: /sft, /sft show, /sft hide, /sft auto, /sft reset.",
+    text =
+    "Tracks your fish and estimated Perfect Roe across bag and bank. Slash commands: /sft, /sft show, /sft hide, /sft auto, /sft reset.",
   }
 
   optionsData[#optionsData + 1] = {
@@ -141,6 +142,22 @@ function SFT.settingsInit()
     name = "Roe Estimation",
   }
   optionsData[#optionsData + 1] = {
+    type = "checkbox",
+    name = "Enable Roe Tracking",
+    tooltip = "Show roe estimation and fillet stats tracking",
+    getFunc = function()
+      return SFT.savedVariables.enableRoeTracking ~= false
+    end,
+    setFunc = function(value)
+      SFT.savedVariables.enableRoeTracking = value
+      if SFT.ApplyRoeTrackingVisibility then
+        SFT.ApplyRoeTrackingVisibility()
+      end
+      SFT.RefreshStorageLabels()
+    end,
+    default = true,
+  }
+  optionsData[#optionsData + 1] = {
     type = "slider",
     name = "Roe Rate",
     tooltip = "Expected Perfect Roe chance per fish",
@@ -156,6 +173,9 @@ function SFT.settingsInit()
       SFT.RefreshStorageLabels()
     end,
     default = SFT.constants.roeRate,
+    disabled = function()
+      return SFT.savedVariables.enableRoeTracking == false
+    end,
   }
 
   optionsData[#optionsData + 1] = {
@@ -170,6 +190,29 @@ function SFT.settingsInit()
       SFT.ResetFishAmount()
     end,
     warning = "This only resets the tracked count, not fish in your inventory.",
+  }
+  optionsData[#optionsData + 1] = {
+    type = "button",
+    name = "Reset Roe/Fillet Tracking",
+    tooltip = "Reset fillets since roe, last roe rate, and roe found counters",
+    func = function()
+      SFT.ResetRoeFilletTracking()
+    end,
+    warning = "This only resets roe/fillet tracking data.",
+    disabled = function()
+      return SFT.savedVariables.enableRoeTracking == false
+    end,
+  }
+  optionsData[#optionsData + 1] = {
+    type = "button",
+    name = "Use Last Roe % as Roe Rate",
+    tooltip = "Set Roe Rate to the last observed roe percentage",
+    func = function()
+      SFT.ApplyLastRoeRateToRoeRateSetting()
+    end,
+    disabled = function()
+      return SFT.savedVariables.enableRoeTracking == false
+    end,
   }
 
   LAM2:RegisterOptionControls("SamisFishTrackerOptions", optionsData)

@@ -39,7 +39,7 @@ end
 
 local function formatAverageLabel()
   local useRollingWindow = not SFT.savedVariables or SFT.savedVariables.averageRateUseRollingWindow ~= false
-  
+
   if useRollingWindow then
     local windowSeconds = (SFT.savedVariables and SFT.savedVariables.averageRateRollingWindowSeconds) or 300
     windowSeconds = math.max(1, math.min(3600, windowSeconds))
@@ -65,6 +65,46 @@ local function isAverageRateEnabled()
   return not SFT.savedVariables or SFT.savedVariables.showAverageRate ~= false
 end
 
+function SFT.IsRoeTrackingEnabled()
+  return not SFT.savedVariables or SFT.savedVariables.enableRoeTracking ~= false
+end
+
+local function resizeFilletWindowToFitStats()
+  local control = SamisFilletTrackerControl
+  local label = SamisFilletTrackerControlLabelFilletStats
+
+  if not control or not label then
+    return
+  end
+
+  local horizontalPadding = 20
+  local minWidth = constants.filletWindowWidth or 300
+  label:SetWrapMode(TEXT_WRAP_MODE_TRUNCATE)
+  label:SetWidth(1000)
+  local textWidth = select(1, label:GetTextDimensions()) or 0
+  local desiredWidth = math.max(minWidth, math.ceil(textWidth) + horizontalPadding)
+
+  control:SetWidth(desiredWidth)
+  label:SetWidth(desiredWidth - horizontalPadding)
+
+  if SFT.filletWindowBackground then
+    SFT.filletWindowBackground:SetDimensions(desiredWidth, constants.filletWindowHeight)
+  end
+end
+
+function SFT.ApplyRoeTrackingVisibility()
+  local enabled = SFT.IsRoeTrackingEnabled()
+
+  SamisFishTrackerControlLabelRoe:SetHidden(not enabled)
+  SamisFishTrackerControlLabelBagRoe:SetHidden(not enabled)
+  SamisFishTrackerControlLabelBankRoe:SetHidden(not enabled)
+  SamisFilletTrackerControl:SetHidden(not enabled)
+
+  if enabled then
+    resizeFilletWindowToFitStats()
+  end
+end
+
 function SFT.InitializeBackground()
   if not SFT.windowBackground then
     local background = WINDOW_MANAGER:CreateControl(nil, SamisFishTrackerControl, CT_TEXTURE)
@@ -81,6 +121,15 @@ function SFT.InitializeBackground()
     separatorLine:SetDimensions(170, 1)
     separatorLine:SetAnchor(BOTTOM, SamisFishTrackerControl, BOTTOM, 0, -26)
     SFT.windowSeparatorLine = separatorLine
+  end
+
+  if not SFT.filletWindowBackground then
+    local filletBg = WINDOW_MANAGER:CreateControl(nil, SamisFilletTrackerControl, CT_TEXTURE)
+    filletBg:SetDimensions(constants.filletWindowWidth, constants.filletWindowHeight)
+    filletBg:SetAnchor(TOPLEFT, SamisFilletTrackerControl, TOPLEFT, 0, 0)
+    filletBg:SetDrawLevel(-1)
+    filletBg:SetColor(0, 0, 0, 0.8)
+    SFT.filletWindowBackground = filletBg
   end
 end
 
@@ -100,6 +149,20 @@ function SFT.UpdateAverageRateLabel(forceUpdate)
   SamisFishTrackerControlLabelAverage:SetText(formatAverageLabel())
 end
 
+function SFT.UpdateFilletStatsLabel()
+  if not SFT.IsRoeTrackingEnabled() then
+    return
+  end
+
+  local sinceRoe = SFT.filletsSinceRoe or 0
+  local lastFillets = SFT.lastRoeFillets or 0
+  local observedPercent = SFT.lastRoeRatePercent or 0
+  SamisFilletTrackerControlLabelFilletStats:SetText(string.format("Fillets since Roe: %d (Last: %d, Obs: %.2f%%)",
+    sinceRoe,
+    lastFillets, observedPercent))
+  resizeFilletWindowToFitStats()
+end
+
 function SFT.ResizeWindow()
   local bankHidden = SamisFishTrackerControlLabelBankFish:IsHidden()
   local newHeight = bankHidden and constants.windowHeightCollapsed or constants.windowHeightFull
@@ -107,7 +170,7 @@ function SFT.ResizeWindow()
   if not isAverageRateEnabled() then
     newHeight = newHeight - 15
   end
-  
+
   SamisFishTrackerControl:SetHeight(newHeight)
   if SFT.windowBackground then
     SFT.windowBackground:SetDimensions(200, newHeight)
@@ -115,22 +178,34 @@ function SFT.ResizeWindow()
 end
 
 function SFT.UpdateBankDisplay()
+  local roeEnabled = SFT.IsRoeTrackingEnabled()
+
   if SFT.total_bank <= 0 then
     SamisFishTrackerControlLabelBankFish:SetHidden(true)
     SamisFishTrackerControlLabelBankRoe:SetHidden(true)
   else
     SamisFishTrackerControlLabelBankFish:SetHidden(false)
-    SamisFishTrackerControlLabelBankRoe:SetHidden(false)
+    SamisFishTrackerControlLabelBankRoe:SetHidden(not roeEnabled)
     SamisFishTrackerControlLabelBankFish:SetText(formatIconLabel(constants.icons.bank, SFT.total_bank))
-    SamisFishTrackerControlLabelBankRoe:SetText(formatRoeLabel(SFT.total_bank))
+    if roeEnabled then
+      SamisFishTrackerControlLabelBankRoe:SetText(formatRoeLabel(SFT.total_bank))
+    end
   end
-  
+
   SFT.ResizeWindow()
 end
 
 function SFT.RefreshStorageLabels()
+  local roeEnabled = SFT.IsRoeTrackingEnabled()
+
+  SFT.ApplyRoeTrackingVisibility()
   SamisFishTrackerControlLabelBagFish:SetText(formatIconLabel(constants.icons.bag, SFT.total_bag))
-  SamisFishTrackerControlLabelBagRoe:SetText(formatRoeLabel(SFT.total_bag))
+  if roeEnabled then
+    SamisFishTrackerControlLabelBagRoe:SetText(formatRoeLabel(SFT.total_bag))
+  end
+  if roeEnabled then
+    SFT.UpdateFilletStatsLabel()
+  end
   SFT.UpdateAverageRateLabel()
   SFT.UpdateBankDisplay()
 end
@@ -138,7 +213,9 @@ end
 function SFT.UpdateFishCount(count)
   SFT.fishamount = count or 0
   SamisFishTrackerControlLabelFish:SetText(formatIconLabel(constants.icons.fish, SFT.fishamount))
-  SamisFishTrackerControlLabelRoe:SetText(formatRoeLabel(SFT.fishamount))
+  if SFT.IsRoeTrackingEnabled() then
+    SamisFishTrackerControlLabelRoe:SetText(formatRoeLabel(SFT.fishamount))
+  end
   SFT.UpdateAverageRateLabel()
 end
 
