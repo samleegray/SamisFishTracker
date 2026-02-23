@@ -1,0 +1,11 @@
+{
+    "[lua]": {
+        "editor.defaultFormatter": "sumneko.lua"
+    },
+    "editor.formatOnSave": true,
+    "Lua.format.defaultConfig": {
+        "indent_style": "space",
+        "indent_size": "2"
+    },
+    "editor.tabSize": 2
+}
