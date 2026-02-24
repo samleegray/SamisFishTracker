@@ -14,16 +14,43 @@ local function getCatchHistory()
   if not SFT.averageRateCatchHistory then
     SFT.averageRateCatchHistory = {}
   end
+  if not SFT.averageRateCatchHistoryHead then
+    SFT.averageRateCatchHistoryHead = 1
+  end
 
   return SFT.averageRateCatchHistory
+end
+
+local function compactCatchHistory(head)
+  local catchHistory = getCatchHistory()
+  local totalCount = #catchHistory
+  if head <= 1 then
+    return
+  end
+
+  local newHistory = {}
+  local newIndex = 1
+  for i = head, totalCount do
+    newHistory[newIndex] = catchHistory[i]
+    newIndex = newIndex + 1
+  end
+
+  SFT.averageRateCatchHistory = newHistory
+  SFT.averageRateCatchHistoryHead = 1
 end
 
 local function pruneCatchHistory(now, windowSeconds)
   local catchHistory = getCatchHistory()
   local cutoff = now - windowSeconds
+  local head = SFT.averageRateCatchHistoryHead or 1
 
-  while #catchHistory > 0 and catchHistory[1].timestamp <= cutoff do
-    table.remove(catchHistory, 1)
+  while catchHistory[head] and catchHistory[head].timestamp <= cutoff do
+    head = head + 1
+  end
+
+  SFT.averageRateCatchHistoryHead = head
+  if head > 50 and head > (#catchHistory / 2) then
+    compactCatchHistory(head)
   end
 
   return catchHistory
@@ -45,9 +72,10 @@ local function formatAverageLabel()
     windowSeconds = math.max(1, math.min(3600, windowSeconds))
     local now = os.time()
     local catchHistory = pruneCatchHistory(now, windowSeconds)
+    local head = SFT.averageRateCatchHistoryHead or 1
     local fishInWindow = 0
 
-    for i = 1, #catchHistory do
+    for i = head, #catchHistory do
       fishInWindow = fishInWindow + catchHistory[i].amount
     end
 
@@ -229,6 +257,7 @@ end
 function SFT.ResetFishAmount()
   SFT.sessionStartTime = os.time()
   SFT.averageRateCatchHistory = {}
+  SFT.averageRateCatchHistoryHead = 1
   SFT.UpdateFishCount(0)
   SFT.savedVariables.amount = 0
   SFT.UpdateAverageRateLabel()

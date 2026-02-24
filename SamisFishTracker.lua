@@ -1,23 +1,31 @@
 local SFT = SamisFishTrackerAddon
 local visibility = SFT.constants.visibility
 local averageRateUpdateName = SFT.name .. "AverageRate"
+local inventoryRefreshUpdateName = SFT.name .. "InventoryRefresh"
 
 
 local function iterateThroughEntireBag()
   local bagId = BAG_BACKPACK
-  local slotIndex = ZO_GetNextBagSlotIndex(bagId, 0)
+  local slotIndex = ZO_GetNextBagSlotIndex(bagId, nil)
   local newLinks = {}
 
   while slotIndex do
-    slotIndex = ZO_GetNextBagSlotIndex(bagId, slotIndex)
-
     local itemLink = GetItemLink(bagId, slotIndex, 1)
     if itemLink and GetItemLinkItemType(itemLink) == ITEMTYPE_FISH then
       newLinks[slotIndex] = itemLink
     end
+
+    slotIndex = ZO_GetNextBagSlotIndex(bagId, slotIndex)
   end
 
   SFT.utils.cacheFish(newLinks)
+end
+
+local function refreshInventoryAndUi()
+  SFT.RefreshTotals()
+  SFT.RefreshStorageLabels()
+  SFT.UpdateFishCount(SFT.total_bag)
+  SFT.savedVariables.amount = SFT.total_bag
 end
 
 function SFT.ConfigureAverageRateAutoUpdate()
@@ -94,6 +102,7 @@ function SFT.Initialize()
   SFT.total_roe_found = 0
   SFT.sessionStartTime = os.time()
   SFT.averageRateCatchHistory = {}
+  SFT.averageRateCatchHistoryHead = 1
 
   EVENT_MANAGER:RegisterForEvent(SFT.name, EVENT_LOOT_RECEIVED, SFT.LootReceivedEvent)
   EVENT_MANAGER:RegisterForEvent(SFT.name, EVENT_CLOSE_BANK, SFT.UpdateTotal)
