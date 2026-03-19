@@ -109,6 +109,7 @@ function SFT.Initialize()
     filletsSinceRoe = 0,
     lastRoeFillets = 0,
     lastRoeRatePercent = 0,
+    autoSyncRoeRate = false,
     totalRoeFound = 0,
     showAverageRate = true,
     averageRateAutoUpdateEnabled = true,
@@ -181,6 +182,9 @@ function SFT.RegisterFilletCount(amount)
   else
     SFT.lastRoeRatePercent = 0
   end
+  if SFT.savedVariables.autoSyncRoeRate then
+    SFT.savedVariables.roeRate = SFT.lastRoeRatePercent / 100
+  end
   SFT.savedVariables.filletCountTotal = SFT.filletCountTotal
   SFT.savedVariables.filletsSinceRoe = SFT.filletsSinceRoe
   SFT.savedVariables.lastRoeRatePercent = SFT.lastRoeRatePercent
@@ -214,6 +218,9 @@ function SFT.OnPerfectRoeFound(amount)
     SFT.lastRoeRatePercent = (SFT.total_roe_found / totalFillets) * 100
   else
     SFT.lastRoeRatePercent = 0
+  end
+  if SFT.savedVariables.autoSyncRoeRate then
+    SFT.savedVariables.roeRate = SFT.lastRoeRatePercent / 100
   end
   SFT.savedVariables.totalRoeFound = SFT.total_roe_found
   SFT.savedVariables.filletsSinceRoe = SFT.filletsSinceRoe

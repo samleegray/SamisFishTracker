@@ -176,6 +176,24 @@ function SFT.settingsInit()
     end,
     default = SFT.constants.roeRate,
     disabled = function()
+      return SFT.savedVariables.enableRoeTracking == false or SFT.savedVariables.autoSyncRoeRate == true
+    end,
+  }
+  optionsData[#optionsData + 1] = {
+    type = "checkbox",
+    name = "Auto-sync Roe Rate from observed data",
+    tooltip = "Automatically update Roe Rate with the observed rate each time a fillet or roe event is recorded",
+    getFunc = function()
+      return SFT.savedVariables.autoSyncRoeRate == true
+    end,
+    setFunc = function(value)
+      SFT.savedVariables.autoSyncRoeRate = value
+      if value then
+        SFT.ApplyLastRoeRateToRoeRateSetting()
+      end
+    end,
+    default = false,
+    disabled = function()
       return SFT.savedVariables.enableRoeTracking == false
     end,
   }
