@@ -162,10 +162,12 @@ function SFT.settingsInit()
     name = "Roe Rate",
     tooltip = "Expected Perfect Roe chance per fish",
     min = 0.0001,
-    max = 0.1,
+    max = 5.0,
     step = 0.0001,
     getFunc = function()
-      return SFT.savedVariables.roeRate or SFT.constants.roeRate
+      d(" getFunc roe rate: " ..
+        tostring(SFT.savedVariables.roeRate) .. ", default: " .. tostring(SFT.constants.roeRate) .. ")")
+      return tonumber(string.format("%.4f", SFT.savedVariables.roeRate or SFT.constants.roeRate))
     end,
     setFunc = function(value)
       SFT.savedVariables.roeRate = value

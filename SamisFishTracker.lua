@@ -254,7 +254,7 @@ function SFT.ApplyLastRoeRateToRoeRateSetting()
 
   local percentValue = tonumber(SFT.lastRoeRatePercent) or 0
   local rateValue = percentValue / 100
-  local clampedRate = math.max(0.0001, math.min(0.1, rateValue))
+  local clampedRate = math.max(0.0001, rateValue)
 
   SFT.savedVariables.roeRate = clampedRate
   SFT.UpdateFishCount(SFT.fishamount)
