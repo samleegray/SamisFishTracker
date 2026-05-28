@@ -29,7 +29,7 @@ jobs:
       - name: Extract addon version from lua
         id: addon_version
         run: |
-          ADDON_VERSION=$(grep -oP 'version = "\K[^"]+' "${{ env.ADDON_NAME }}.txt")
+          ADDON_VERSION=$(grep -oP '## Version:\s*\K[^"]+' "${{ env.ADDON_NAME }}.txt")
           echo "version=$ADDON_VERSION" >> $GITHUB_OUTPUT
           echo "Addon version: $ADDON_VERSION"
 
