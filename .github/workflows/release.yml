@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 env:
-  ADDON_NAME: SamiWorldTimers
+  ADDON_NAME: SamisFishTracker
 
 jobs:
   release:
