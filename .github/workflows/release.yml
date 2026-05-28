@@ -8,9 +8,13 @@ on:
 permissions:
   contents: write
 
+env:
+  ADDON_NAME: SamiWorldTimers
+
 jobs:
   release:
     runs-on: ubuntu-latest
+    environment: release
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -22,10 +26,10 @@ jobs:
           echo "version=$TAG_VERSION" >> $GITHUB_OUTPUT
           echo "Tag version: $TAG_VERSION"
 
-      - name: Extract addon version from SFT_Core.lua
+      - name: Extract addon version from lua
         id: addon_version
         run: |
-          ADDON_VERSION=$(grep -oP 'version = "\K[^"]+' SFT_Core.lua)
+          ADDON_VERSION=$(grep -oP 'version = "\K[^"]+' "${{ env.ADDON_NAME }}.lua")
           echo "version=$ADDON_VERSION" >> $GITHUB_OUTPUT
           echo "Addon version: $ADDON_VERSION"
 
@@ -43,24 +47,70 @@ jobs:
 
       - name: Create zip file
         run: |
-          mkdir -p SamisFishTracker
-          cp SamisFishTracker.lua \
-            SamisFishTracker.txt \
-            SamisFishTracker.xml \
-            SFT_Commands.lua \
-            SFT_Core.lua \
-            SFT_Inventory.lua \
-            SFT_UI.lua \
-            SFT_Settings.lua \
-            SFT_Utils.lua \
-            SamisFishTracker/
-          zip -r SamisFishTracker.zip SamisFishTracker/
-            
+          mkdir -p "${{ env.ADDON_NAME }}"
+          find . -maxdepth 1 -type f \( -name "*.lua" -o -name "*.xml" -o -name "*.txt" \) \
+            -exec cp {} "${{ env.ADDON_NAME }}/" \;
+          zip -r "${{ env.ADDON_NAME }}.zip" "${{ env.ADDON_NAME }}/"
+
+      - name: Extract addon metadata from txt
+        id: addon_meta
+        run: |
+          TITLE=$(grep '^## Title:' "${{ env.ADDON_NAME }}.txt" | sed 's/^## Title:[[:space:]]*//')
+          DESCRIPTION=$(grep '^## Description:' "${{ env.ADDON_NAME }}.txt" | sed 's/^## Description:[[:space:]]*//')
+          COMPATIBLE=$(grep '^## APIVersion:' "${{ env.ADDON_NAME }}.txt" | sed 's/^## APIVersion:[[:space:]]*//' | tr -s ' ' ',' | sed 's/^,*//;s/,*$//')
+
+          echo "title=$TITLE" >> "$GITHUB_OUTPUT"
+          echo "description=$DESCRIPTION" >> "$GITHUB_OUTPUT"
+          echo "compatible=$COMPATIBLE" >> "$GITHUB_OUTPUT"
+
+      - name: Build changelog for ESOUI
+        run: |
+          VERSION=${{ steps.tag_version.outputs.version }}
+          PREV_TAG=$(git tag --sort=-creatordate | grep -v "^v${VERSION}$" | head -n1)
+
+          {
+            echo "Release v${VERSION}"
+            echo
+            if [ -n "$PREV_TAG" ]; then
+              echo "Changes since ${PREV_TAG}:"
+              git log --pretty='- %s (%h)' "${PREV_TAG}"..HEAD
+            else
+              echo "Changes included in this release:"
+              git log --pretty='- %s (%h)' -n 20
+            fi
+          } > esoui_changelog.txt
+
+      - name: Upload release to ESOUI API
+        env:
+          ESOUI_ADDON_ID: ${{ secrets.ESOUI_ADDON_ID }}
+          ESOUI_API_TOKEN: ${{ secrets.ESOUI_API_TOKEN }}
+          ESOUI_API_URL: https://api.esoui.com/addons/update
+        run: |
+          if [ -z "$ESOUI_ADDON_ID" ]; then
+            echo "Missing required secret: ESOUI_ADDON_ID"
+            exit 1
+          fi
+
+          if [ -z "$ESOUI_API_TOKEN" ]; then
+            echo "Missing required secret: ESOUI_API_TOKEN"
+            exit 1
+          fi
+
+          curl --fail-with-body --silent --show-error \
+            -X POST "$ESOUI_API_URL" \
+            -H "x-api-token: $ESOUI_API_TOKEN" \
+            -F "id=$ESOUI_ADDON_ID" \
+            -F "title=${{ steps.addon_meta.outputs.title }}" \
+            -F "version=${{ steps.tag_version.outputs.version }}" \
+            -F "changelog=<esoui_changelog.txt" \
+            -F "archive=Yes" \
+            -F "compatible=${{ steps.addon_meta.outputs.compatible }}" \
+            -F "updatefile=@${{ env.ADDON_NAME }}.zip"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          files: SamisFishTracker.zip
+          files: ${{ env.ADDON_NAME }}.zip
           draft: false
           prerelease: false
         env:
